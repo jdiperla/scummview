@@ -1,8 +1,11 @@
 
-function Rectangle(x, y, w, h) {
-  // console.log('Rectangle');
-  this.x = x;
-  this.y = y;
-  this.width = w;
-  this.height = h;
+class Rectangle {
+  constructor(x, y, width, height) {
+    this.x = x || 0;
+    this.y = y || 0;
+    this.width = width || 0;
+    this.height = height || 0;
+  }
 }
+
+module.exports = Rectangle;
