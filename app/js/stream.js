@@ -1,8 +1,13 @@
 
 class Stream {
   constructor(buffer) {
-    this.buffer = new Uint8Array(buffer);
+    // this.buffer = new Uint8Array(buffer);
+    this.buffer = buffer;
     this.offset = 0;
+  }
+
+  get size() {
+    return this.buffer.length;
   }
 
   skip(size) {
@@ -29,26 +34,35 @@ class Stream {
     }
   }
 
-  getUint8(enc=0) {
-    let uint8 = this.buffer[this.offset]^enc;
-    this.offset++;
-    return uint8;
+  getUint8(offset) {
+    if (offset == undefined) {
+      return this.buffer[this.offset++];
+    } else {
+      return this.buffer[offset];
+    }
   }
 
-  getUint16(enc=0) {
-    let uint16 = (this.buffer[this.offset + 1]^enc) << 8 | (this.buffer[this.offset]^enc);
-    this.offset += 2;
-    return uint16;
+  getUint16(offset) {
+    if (offset == undefined) {
+      let uint16 = this.buffer[this.offset + 1] << 8 | this.buffer[this.offset];
+      this.offset += 2;
+      return uint16;
+    } else {
+      return this.buffer[offset + 1] << 8 | this.buffer[offset];
+    }
   }
 
-  getUint32(enc=0) {
-    let uint32 =
-      (this.buffer[this.offset + 3]^enc) << 24 |
-      (this.buffer[this.offset + 2]^enc) << 16 |
-      (this.buffer[this.offset + 1]^enc) << 8 |
-      (this.buffer[this.offset]^enc);
-    this.offset += 4;
-    return uint32;
+  getUint32(offset) {
+    if (offset == undefined) {
+      let uint32 = this.buffer[this.offset + 3] << 24 | this.buffer[this.offset + 2] << 16 |
+        this.buffer[this.offset + 1] << 8 | this.buffer[this.offset];
+      this.offset += 4;
+      return uint32;
+    } else {
+      return
+        this.buffer[offset + 3] << 24 | this.buffer[offset + 2] << 16 |
+        this.buffer[offset + 1] << 8 | this.buffer[offset];
+    }
   }
 
   atBegin() {

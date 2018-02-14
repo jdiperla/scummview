@@ -2,8 +2,11 @@ const Rectangle = require('./rectangle');
 
 const Detector = require('./detector');
 const Tools = require('./tools');
-const Scumm3 = require('./scumm3');
-const Scumm4 = require('./scumm4');
+const Scumm3 = require('./scumm3/scumm3');
+const Scumm4 = require('./scumm4/scumm4');
+
+const RoomList = require('./ui/room_list');
+const RoomImage = require('./ui/room_image');
 
 const fs = require('fs');
 const path = require('path');
@@ -11,87 +14,161 @@ const crypto = require('crypto');
 
 let app = {};
 let game;
+let rooms = [];
+let ui = {};
 
-function getFileChecksum(filepath) {
-  try {
-    let data = fs.readFileSync(filepath);
-    let result = Tools.checksum(data);
-    return result;
-  } catch (err) {
-    console.log(err.message);
-  }
-}
-
-function appendRoomImage(roomno, el) {
-  if (!game) return;
-
-  let room = game.getRoom(roomno);
-  if (room) {
-    let width = room.width;
-    let height = room.height;
-    let data = room.imageData;
-
-    if (width > 0 && height > 0 && data) {
-      let canvas = document.createElement('canvas');
-      canvas.width = width;
-      canvas.height = height;
-
-      let ctx = canvas.getContext('2d');
-      let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      for (var i = 0; i < imageData.data.length; i++) {
-        imageData.data[i] = data[i];
-      }
-      ctx.putImageData(imageData, 0, 0);
-
-      let image = new Image();
-      image.src = canvas.toDataURL();
-
-      el ? el.appendChild(image) : document.body.appendChild(image);
+function createImageFromData(src, width, height) {
+  if (src) {
+    let canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    let ctx = canvas.getContext('2d');
+    let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    for (var i = 0; i < imageData.data.length; i++) {
+      imageData.data[i] = src[i];
     }
+    ctx.putImageData(imageData, 0, 0);
+
+    let image = new Image();
+    image.src = canvas.toDataURL();
+
+    return image;
   }
 }
 
-function createRoomList(roomList) {
-  let div = document.createElement('div');
-  div.id = 'roomList';
-  div.classList.add('room-list');
-  for (var i = 0; i < roomList.length; i++) {
-    let title = roomList[i];
-    let el = document.createElement('div');
-    el.dataset.id = title;
-    el.classList.add('room-list-item');
-    el.appendChild(document.createTextNode(title));
-    el.onclick = (event) => {
-      let id = event.target.dataset.id;
-      appendRoomImage(id, event.target);
-    };
-    div.appendChild(el);
+function showRoomDetail(room) {
+  let roomImageData = game.getRoomImage(room);
+
+  let roomDetailEl = document.getElementById('room-detail');
+  roomDetailEl.style.display = 'initial';
+
+  let numberEl = document.getElementById('room-id');
+  let descEl = document.getElementById('room-desc');
+  let dimensionsEl = document.getElementById('room-dimensions');
+  let numObjectsEl = document.getElementById('room-num-objects');
+  let imageEl = document.getElementById('room-image-container');
+
+  numberEl.innerHTML = room.id;
+  descEl.innerHTML = room.name ? room.name : '';
+  dimensionsEl.innerHTML = room.width + ' x ' + room.height;
+  numObjectsEl.innerHTML = room.numObjects;
+
+  let canvas = document.createElement('canvas');
+  if (roomImageData) {
+    canvas.width = room.width;
+    canvas.height = room.height;
+    let ctx = canvas.getContext('2d');
+    let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    for (var i = 0; i < imageData.data.length; i++) {
+      imageData.data[i] = roomImageData[i];
+    }
+    ctx.putImageData(imageData, 0, 0);
+    let image = new Image();
+    image.style.pointerEvents = 'none';
+    image.src = canvas.toDataURL();
+    ui.roomImage.setImage(image);
+
+    imageEl.style.display = 'initial';
+  } else {
+    imageEl.style.display = 'none';
   }
-  document.body.appendChild(div);
+
+  let objectsEl = document.getElementById('room-objects');
+  // let objectsEl = document.getElementById('room-objects');
+  objectsEl.innerHTML = '';
+
+  if (room.objects) {
+    for (var i = 0; i < room.objects.length; i++) {
+      let ob = room.objects[i];
+
+      let xPos = ob.xPos;
+      let yPos = ob.yPos;
+      let id = ob.id;
+      let number = ob.number;
+      let width = ob.width;
+      let height = ob.height;
+
+      let el = document.createElement('div');
+      el.classList.add('room-object');
+      el.innerHTML = `${number} [${xPos}, ${yPos}] [${width}, ${height}]`;
+
+      let imEl = document.createElement('div');
+      let pixelData = game.getRoomObjectImage(room.id, ob.number);
+      let image = createImageFromData(pixelData, ob.width, ob.height);
+      if (image) imEl.appendChild(image);
+
+      el.appendChild(imEl);
+
+      objectsEl.appendChild(el);
+    }
+
+    // let ob = room.objects[1];
+    // if (ob) {
+    //   let el = document.createElement('div');
+    //   el.innerHTML = `${ob.number} [${ob.xPos}, ${ob.yPos}] [${ob.width}, ${ob.height}]`;
+    //   objectsEl.appendChild(el);
+    //
+    //   let pixelData = game.getRoomObjectImage(room.id, ob.number);
+    //   let image = createImageFromData(pixelData, ob.width, ob.height);
+    //   objectsEl.appendChild(image);
+    // }
+  }
+}
+
+function refreshRoomList(roomids) {
+  rooms = [];
+
+  ui.roomList.clear();
+
+  for (var i = 0; i < roomids.length; i++) {
+    let id = roomids[i];
+    let room = game.getRoom(id);
+    rooms[id] = room;
+    ui.roomList.createListItem(room);
+    setTimeout(() => {
+      let room = rooms[id];
+      let roomImageData = game.getRoomImage(room);
+      ui.roomList.setThumbnail(room.id, room.width, room.height, roomImageData);
+    }, Math.random()*20 + 25);
+  }
+}
+
+function refreshElements() {
+
+  let roomDetailEl = document.getElementById('room-detail');
+  roomDetailEl.style.display = 'none';
+
+  // el = document.getElementById('room-image');
+  // if (el.firstChild) el.removeChild(el.firstChild);
+  // document.getElementById('room-id').innerHTML = '';
+  // document.getElementById('room-dimensions').innerHTML = '';
+  // document.getElementById('room-num-objects').innerHTML = '';
+  //
+  // let objectsEl = document.getElementById('room-objects');
+  // objectsEl.innerHTML = '';
+
+  let roomids = game.getRoomList();
+  roomids = roomids.slice(0, 24);
+  console.log(roomids.length.toString(), 'rooms');
+  refreshRoomList(roomids);
+
+  let dropEl = document.getElementById('drop');
+  dropEl.style.display = 'none';
 }
 
 function detect(rootPath) {
-  // let game;
   let stats = fs.statSync(rootPath);
   if (stats.isDirectory()) {
-    let version = Detector.detectMajorVersion(rootPath);
-    console.log('Major Version:', version);
-    if (version == 3) {
-      game = new Scumm3(rootPath);
+    let detector = new Detector(rootPath);
+    if (detector.version == 3) {
+      game = new Scumm3(detector);
     }
-    else if (version == 4) {
-      game = new Scumm4(rootPath);
+    else if (detector.version == 4) {
+      game = new Scumm4(detector);
     }
-    let room;
     if (game) {
-      let roomList = game.getRoomList();
       console.log(game.name);
-      // console.log(roomList);
-      if (version == 3) {
-        createRoomList(roomList);
-      } else if (version == 4) {
-        createRoomList(roomList);
-      }
+      refreshElements();
     }
   }
 }
@@ -121,7 +198,7 @@ function onDragEnd(event) {
 
 function onContextMenu() {
   // event.preventDefault();
-  console.log('menu');
+  // console.log('menu');
 }
 
 function initEventListeners() {
@@ -133,18 +210,23 @@ function initEventListeners() {
   window.addEventListener('contextmenu', onContextMenu);
 }
 
+function createElements() {
+  ui.roomList = new RoomList({el: document.getElementById('room-list')});
+  ui.roomList.on('select', (id) => {
+    showRoomDetail(rooms[id]);
+  });
+  ui.roomImage = new RoomImage({el: document.getElementById('room-image')});
+}
+
 function ready() {
   console.log('ready');
 
   initEventListeners();
+  createElements();
 }
 
 window.onload = () => {
   ready();
 }
-
-// app.getPath = () => {
-//   return app.path;
-// }
 
 window.app = app;

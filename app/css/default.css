@@ -1,32 +1,134 @@
 body, html {
   font-family: sans-serif;
-  /* font-size: 12px; */
   margin: 0;
   padding: 0;
+  height: 100vh;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: default;
+  background: black;
+  overflow: hidden;
 }
 
-.content {
+#drop {
   display: flex;
+  position: fixed;
   align-items: center;
   justify-content: center;
+  bottom: 0px;
+  left: 0px;
+  width: 100vw;
+  height: 36px;
+  box-sizing: border-box;
+  background: rgb(240, 240, 240);
+  z-index: 100;
 }
 
-.dropzone {
-  text-align: center;
-  flex: auto;
-  background: rgba(0, 0, 0, 0.25);
-  padding: 8px;
-}
-
-.room-list {
+#content {
   display: flex;
-  flex-direction: column;
-  padding: 8px;
+  /* flex-direction: column; */
+}
+
+#room-list {
+  /* flex: auto; */
+
+  /* height: calc(100vh - 16px); */
+  /* height: 50vh; */
+  /* max-width: 400px; */
+  /* min-width: 400px; */
+  /* margin: 8px 8px 0px 8px; */
+  display: flex;
+
+  height: 100vh;
+  width: 384px;
+  min-width: 384px;
+
+  overflow: hidden;
+  /* border: 1px solid red; */
+
+  box-sizing: border-box;
+}
+
+.room-list-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  /* display: flex; */
+  /* flex-direction: column; */
+  /* flex-wrap: wrap; */
+
 }
 
 .room-list-item {
-  background: lightgray;
-  padding: 4px;
-  margin: 1px;
+  display: flex;
+  flex-direction: column;
+  background: black;
+  /* background: rgb(80,80,80); */
+}
+
+.room-list-item-image {
+  white-space: nowrap;
   overflow: hidden;
+}
+
+.room-list-item-text {
+  font-size: 10px;
+  padding: 2px;
+  color: lightgray;
+}
+
+#room-detail-container {
+  display: flex;
+  flex-direction: column;
+  /* width: calc(100vw - 256px); */
+  width: 100%;
+  height: 100vh;
+  background: lightgray;
+}
+
+#room-detail {
+  display: flex;
+  flex-direction: column;
+  /* flex: auto; */
+  width: 100%;
+  /* height: 100vh; */
+  padding: 16px;
+  box-sizing: border-box;
+  /* background: rgb(80,80,80); */
+}
+
+#room-image {
+  /* width: 100%; */
+  width: 360px;
+  min-width: 360px;
+  overflow: hidden;
+}
+
+#room-objects {
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 11px;
+}
+
+.room-object {
+  border: 1px solid red;
+  margin: 2px;
+}
+
+.property {
+  display: flex;
+  font-size: 13px;
+}
+
+.value {
+  white-space: nowrap;
+  color: black;
+  /* color: rgb(224, 224, 224); */
+  /* background: lightgray; */
+}
+
+.label {
+  margin-right: 4px;
+  white-space: nowrap;
+  /* color: rgba(224, 224, 224, 0.65); */
+  color: rgba(0, 0, 0, 0.65);
 }

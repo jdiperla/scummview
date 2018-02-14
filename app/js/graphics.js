@@ -7,6 +7,7 @@ var ROOM_PALETTE = [
 ];
 
 class Graphics {
+
   static drawStripEGA(dstX, dstY, dst, dstPitch, src, height, strip) {
     var offset = -1;
     var smapLen;
@@ -80,7 +81,10 @@ class Graphics {
           }
         }
       }
-      if (srcOffset > src.length) break;
+      if (srcOffset > src.length) {
+        console.log('break');
+        break;
+      }
     }
   }
 

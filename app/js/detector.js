@@ -17,6 +17,10 @@ const IMAGE_HASHES = {
 };
 
 class Detector {
+  constructor(rootPath) {
+    this.rootPath = rootPath;
+    this.version = Detector.detectMajorVersion(this.rootPath);
+  }
 
   static gameInfoFromHash(hash) {
     let gameInfo;
