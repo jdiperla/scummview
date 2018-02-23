@@ -6,43 +6,110 @@ const Stream = require('../stream');
 const Detector = require('../detector');
 const Graphics = require('../graphics');
 const Game = require('../game');
+const Charset = require('./charset');
 
 const OF_OWNER_MASK = 0x0F;
 const OF_STATE_MASK = 0xF0;
 const OF_STATE_SHL = 4;
 
+
 class Scumm3 extends Game {
   constructor(detector) {
-    super();
-    this.rootPath = detector.rootPath;
-    this.classData = [];
-    this.objectOwnerTable = [];
-    this.objectStateTable = [];
-    this.resource = [];
-    this.rooms = [];
+    super(detector);
+    this.graphics = new Graphics();
     this.detect();
   }
 
   detect() {
-    this.readIndex();
-
-    // We hash the decoded image data from room 1 and compare that
-    // against known hash values to identify the game
+    this.parseIndex();
+    this.parseCharset();
 
     let room = this.getRoom(1);
     if (room) {
-      let imageData = this.getRoomImage(room);
-      let hash = Tools.checksum(imageData);
+      let pixelsRGBA = this.getRoomBitmap(room.id);
+
+      // We hash the decoded image data from room 1 and compare that
+      // against known hash values to identify the game
+      let hash = Tools.checksum(pixelsRGBA);
+
       let info = Detector.gameInfoFromHash(hash);
-      this.name = info.name;
-      this.id = info.id;
-      this.version = info.version;
-      this.room = room;
+      if (info) {
+        this.name = info.name;
+        this.id = info.id;
+        this.version = info.version;
+      }
     }
   }
 
-  readIndex() {
-    let buffer, stream;
+  getCharsetItem(num, setnum=0) {
+    return this.charsets[setnum].characters[num];
+  }
+
+  getCharsetBitmap(num, setnum=0) {
+    let ch = this.charsets[setnum].characters[num];
+    let pixels = new Uint8Array(ch.width * ch.height * 4);
+
+    for (var i = 0, x = 0, y = 0; i < ch.data.length * 8; i++) {
+      let byte = ch.data[(i / 8) >> 0];
+      let bit = Math.pow(2, 7-(i % 8));
+      let value = (byte & bit ? 255 : 0);
+
+      let index = (y * ch.width + x) * 4;
+      pixels[index + 0] = value;
+      pixels[index + 1] = value;
+      pixels[index + 2] = value;
+      pixels[index + 3] = 255;
+
+      x++;
+      if (x == 8) {
+        y++;
+        x = 0;
+      }
+    }
+
+    return pixels;
+  }
+
+  parseCharset() {
+    let buffer;
+    try {
+      buffer = fs.readFileSync(path.join(this.rootPath, '99.lfl'));
+    } catch (err) {
+      console.log(err.message);
+      return;
+    }
+    let stream = new Stream(buffer);
+
+    let numChars = stream.getUint8(6);
+    let charHeight = stream.getUint8(7);
+
+    let offset = 8;
+    let characters = [];
+
+    // Read width table
+    for (var i = 0; i < numChars; i++) {
+      characters[i] = {};
+      let b = stream.getUint8(offset++);
+      characters[i].width = b;
+      characters[i].height = charHeight;
+      // console.log(i, b);
+    }
+
+    for (var i = 0; i < numChars; i++) {
+      let data = stream.getBytes(offset, 8);
+      characters[i].data = data;
+      offset += 8;
+    }
+
+    let charset = new Charset({ numChars: numChars, charHeight: charHeight });
+    for (var i = 0; i < characters.length; i++)
+      charset.addGlyph(characters[i]);
+
+    this.charsets[0] = charset;
+  }
+
+  parseIndex() {
+    let buffer;
 
     try {
       buffer = fs.readFileSync(path.join(this.rootPath, '00.lfl'));
@@ -51,60 +118,67 @@ class Scumm3 extends Game {
       return;
     }
 
-    stream = new Stream(Tools.decrypt(buffer, 0xFF));
+    let stream = new Stream(Tools.decrypt(buffer, 0xff));
 
     // Magic number
-    this.magic = stream.getUint16();
+    this.magic = stream.getUint16LE(0);
 
-    // console.log(this.magic.toString(16));
+    console.log('0x' + this.magic.toString(16));
 
     if (this.magic !== 0x100) return;
 
-    this.numGlobalObjects = stream.getUint16();
-    stream.skip(this.numGlobalObjects * 4);
+    this.numGlobalObjects = stream.getUint16LE(2);
+    // stream.skip(this.numGlobalObjects * 4);
+
+    let offset = 4 + this.numGlobalObjects * 4;
 
     // if (this.numGlobalObjects == 1000) { // v3 old
     // } else if (this.numGlobalObjects == 780) { // v2
     // } else {
     // }
 
-    this.numRooms = stream.getUint8();
-    stream.skip(this.numRooms * 3);
+    this.numRooms = stream.getUint8(offset);
+    // stream.skip(this.numRooms * 3);
+    offset += this.numRooms * 3;
 
-    this.numCostumes = stream.getUint8();
-    stream.skip(this.numCostumes * 3);
+    this.numCostumes = stream.getUint8(offset);
+    // stream.skip(this.numCostumes * 3);
+    offset += this.numCostumes * 3;
 
-    this.numScripts = stream.getUint8();
-    stream.skip(this.numScripts * 3);
+    this.numScripts = stream.getUint8(offset);
+    // stream.skip(this.numScripts * 3);
+    offset += this.numScripts * 3;
 
-    this.numSounds = stream.getUint8();
+    this.numSounds = stream.getUint8(offset);
 
-    stream.reset();
-    stream.skip(4);
+    // stream.reset();
+    // stream.skip(4);
+    // offset = 4;
 
     // Global Objects
 
     let bits = 0;
-    let num = this.numGlobalObjects;
 
-    for (let i = 0; i !== num; i++) {
-			bits = stream.getUint8();
-			bits |= stream.getUint8() << 8;
-			bits |= stream.getUint8() << 16;
+    this.classData = [];
+    this.objectOwnerTable = [];
+    this.objectStateTable = [];
+
+    for (let i = 0; i !== this.numGlobalObjects; i++) {
+			bits = stream.getUint8(offset);
+			bits |= stream.getUint8(offset + 1) << 8;
+			bits |= stream.getUint8(offset + 2) << 16;
       this.classData[i] = bits;
-      let b = stream.getUint8();
+      let b = stream.getUint8(offset + 3);
       this.objectOwnerTable[i] = b & OF_OWNER_MASK;
       this.objectStateTable[i] = b >> OF_STATE_SHL;
+      offset += 4;
 		}
 
-    // readResTypeList(rtRoom);
-  	// readResTypeList(rtCostume);
-  	// readResTypeList(rtScript);
-  	// readResTypeList(rtSound);
+    // console.log(this.objectStateTable);
 
     // Rooms
 
-    num = stream.getUint8();
+    // num = stream.getUint8(offset);
 
     // this.rooms = [];
     // for (let i = 0; i < num; i++)
@@ -116,207 +190,178 @@ class Scumm3 extends Game {
     //   this.rooms[i].offset = offset;
     //   // if (this.rooms[i].offset == 0xFFFF) console.log(i, 'invalid room offset');
     // }
+
+    // console.log(this.numGlobalObjects, this.numRooms);
+    fs.writeFileSync(path.join(this.rootPath, '_classData.txt'), this.classData);
+    fs.writeFileSync(path.join(this.rootPath, '_objectOwnerTable.txt'), this.objectOwnerTable);
+    fs.writeFileSync(path.join(this.rootPath, '_objectStateTable.txt'), this.objectStateTable);
   }
 
   resourceFilename(num) {
     return num.toString().padStart(2, '0') + '.lfl';
   }
 
-  getRoomImage(room) {
+  getRoomBitmap(roomid) {
+    let room = this.getRoom(roomid);
     let stream = this.getResourceStream(room.id);
 
     if (room.imageOffset > stream.size) return;
 
     let hasImage = (room.width > 0 && room.height > 0 && room.width !== 8);
 
-    try {
-      if (hasImage) {
-        stream.seek(room.imageOffset);
-        let bytes = stream.getBytes();
+    if (hasImage) {
+      let bytes = stream.getBytes(room.imageOffset, stream.getUint16LE(0));
 
-        // let encodedPixels = new Uint8Array(bytes);
-        let pixels = new Array(room.width * room.height);
-        let pixelData = new Uint8Array(room.width * room.height * 4);
-
-        for (var i = 0; i < room.width / 8; i++) {
-          Graphics.drawStripEGA(0, 0, pixels, room.width, bytes, room.height, i);
+      try {
+        let pixels = this.graphics.decodeSmap(bytes, room.width, room.height, false);
+        if (pixels) {
+          let pixelsRGBA = this.graphics.indexedToRGBA(pixels);
+          return pixelsRGBA;
         }
-
-        for (var j = 0; j < room.height; j++ ) {
-          for (var i = 0; i < room.width; i++) {
-            var rgba = pixels[j * room.width + (i)];
-            pixelData[(j * room.width + i) * 4] = (rgba & 0xFF0000) >> 16;
-            pixelData[(j * room.width + i) * 4 + 1] = (rgba & 0xFF00) >> 8;
-            pixelData[(j * room.width + i) * 4 + 2] = (rgba & 0xFF);
-            pixelData[(j * room.width + i) * 4 + 3] = 255;
-          }
-        }
-
-        return pixelData;
+      } catch (err) {
+        console.log('ROOM', roomid, err);
       }
-    } catch (err) {
-      console.log(err.message);
-      console.log(room);
     }
   }
 
   getResourceStream(num) {
     let filename = this.resourceFilename(num);
-    let data;
-    if (this.resource[filename]) {
-      data = this.resource[filename].cache;
+    let buffer;
+    if (this.resources[filename]) {
+      buffer = this.resources[filename].cache;
     } else {
       try {
-        data = fs.readFileSync(path.join(this.rootPath, filename));
-        data = Tools.decrypt(data, 0xFF);
+        buffer = fs.readFileSync(path.join(this.rootPath, filename));
       } catch (err) {
         console.log(err.message);
         return;
       }
-      this.resource[filename] = { cache: data };
+      buffer = Tools.decrypt(buffer, 0xFF);
+      this.resources[filename] = { cache: buffer };
     }
-    return new Stream(data);
+    return new Stream(buffer);
   }
 
-  getRoomObjectImage(roomid, obid) {
-    // console.log('hi1');
-    let stream = this.getResourceStream(roomid);
-    let ob = this.getRoomObject(roomid, obid);
-    // console.log(ob);
+  // A mask is stored in strips like an image, however, each pixel is
+  // represented by a single bit
 
+  getRoomObjectBitmap(roomid, number) {
+    // console.log('getRoomObjectBitmap', roomid, number);
+    let stream = this.getResourceStream(roomid);
+    let ob = this.getRoomObject(roomid, number);
     if (!ob) return;
 
-    // stream.skip(ob.OBIMoffset);
-
-    let smapLen = stream.getUint16(ob.OBIMoffset);
-    stream.skip(ob.OBIMoffset);
-    let src = stream.getBytes(smapLen);
-
-    let xpos = ob.xPos / 8;
-    let ypos = ob.yPos;
-
-    let width = ob.width / 8;
-    let height = ob.height &= 0xFFFFFFF8;	// Mask out last 3 bits
-
-    let _screenStartStrip = 0;
-    let _screenEndStrip = 2048;
-
-    if (width == 0 || xpos > _screenEndStrip || xpos + width < _screenStartStrip)
-  		return;
-
-    let x = 0xFFFF;
-    let arg = 0;
-    let a, numstrip, tmp;
-
-  	for (a = numstrip = 0; a < width; a++) {
-  		tmp = xpos + a;
-  		if (tmp < _screenStartStrip || _screenEndStrip < tmp)
-  			continue;
-  		if (arg > 0 && _screenStartStrip + arg <= tmp)
-  			continue;
-  		if (arg < 0 && tmp <= _screenEndStrip + arg)
-  			continue;
-  		// setGfxUsageBit(tmp, USAGE_BIT_DIRTY);
-  		if (tmp < x)
-  			x = tmp;
-  		numstrip++;
-  	}
-
-    console.log('getRoomObjectImage', width, height, numstrip);
-    // console.log(numstrip);
-
-    let dst = new Uint8Array(ob.width * ob.height);
-    if (numstrip != 0) {
-  		// let flags = od.flags | Gdi::dbObjectMode;
-  		// _gdi->drawBitmap(ptr, &_virtscr[kMainVirtScreen], x, ypos, width * 8, height, x - xpos, numstrip, flags);
-      // Graphics.drawBitmap(stream.buffer, pixels, x, ypos, width * 8, height, x - xpos, numstrip, flags);
-      for (var i = 0; i < numstrip; i++) {
-        Graphics.drawStripEGA(0, 0, dst, ob.width, src, ob.height, i);
+    let bytes = stream.getBytes(ob.OBIMoffset, stream.getUint16LE(0));
+    try {
+      let pixels = this.graphics.decodeSmap(bytes, ob.width, ob.height);
+      if (pixels) {
+        let pixelsRGBA = this.graphics.indexedToRGBA(pixels);
+        return pixelsRGBA;
       }
-
-      let pixelData = new Uint8Array(ob.width * ob.height * 4);
-
-      for (var j = 0; j < ob.height; j++ ) {
-        for (var i = 0; i < ob.width; i++) {
-          var rgba = dst[j * ob.width + (i)];
-          pixelData[(j * ob.width + i) * 4] = (rgba & 0xFF0000) >> 16;
-          pixelData[(j * ob.width + i) * 4 + 1] = (rgba & 0xFF00) >> 8;
-          pixelData[(j * ob.width + i) * 4 + 2] = (rgba & 0xFF);
-          pixelData[(j * ob.width + i) * 4 + 3] = 255;
-        }
-      }
-      return pixelData;
-  	}
-
+    } catch (err) {
+      // console.log('OB', number, err);
+    }
   }
 
-  getRoomObject(roomid, obid) {
-    // console.log('getRoomObject', roomid, obid);
+  getRoomObjectBitmapMask(roomid, number) {
+    let stream = this.getResourceStream(roomid);
+    let ob = this.getRoomObject(roomid, number);
+    if (!ob) return;
+
+    // let hasImage = (ob.width > 0 && ob.height > 0 && ob.width !== 8 && ob.bytes[2] == 19);
+    let hasImage = (ob.width > 0 && ob.height > 0 && ob.width !== 8);
+
+    if (hasImage) {
+      let zplane_offset = ob.OBIMoffset + stream.getUint16LE(0);
+      let bytes = stream.getBytes(zplane_offset);
+      let pixels = this.graphics.decodeMask(bytes, ob.width, ob.height);
+      let pixelsRGBA = this.graphics.maskToRGBA(pixels);
+      return pixelsRGBA;
+    }
+  }
+
+  getRoomObject(roomid, number) {
     let room = this.getRoom(roomid);
     let ob = room.objects.find(ob => {
-      return ob.number == obid;
+      return ob.number == number;
     });
+    // let ob = room.objects[number];
     return ob;
   }
 
-  getRoom(num) {
-    if (this.rooms[num]) {
-      return this.rooms[num];
+  parseRoomObject(stream, ob) {
+    // let offset = ob.OBCDoffset - 2;
+    let offset = ob.OBCDoffset - 2;
+
+    ob.bytes = stream.getBytes(offset, 6);
+
+    ob.flag = ob.bytes[2];
+
+    // ob.offset = offset;
+    ob.number = stream.getUint16LE(offset + 6);
+    ob.x_pos = stream.getUint8(offset + 9) * 8;
+    ob.y_pos = (stream.getUint8(offset + 10) & 0x7f) * 8;
+    ob.parentstate = (stream.getUint8(offset + 10) & 0x80) ? 1 : 0;
+    ob.width = stream.getUint8(offset + 11) * 8;
+    ob.parent = stream.getUint8(offset + 12); //*(ptr + 12);
+    ob.height = stream.getUint8(offset + 17) & 0xf8;
+    ob.smapLen = stream.getUint16LE(ob.OBIMoffset);
+    ob.nameOffset = stream.getUint8(offset + 18);
+
+    //verb table offset + 19
+
+    ob.name = '';
+    for(let i = 0, offs = ob.OBCDoffset + ob.nameOffset; i < 32; i++) {
+      let b = stream.getUint8(offs++);
+      if (b == 0x00 || b == '@'.charCodeAt(0)) break;
+      // if (b == 0x00) break;
+      ob.name += String.fromCharCode(b);
     }
+
+    ob.hasImage = true;
+    //scumm script data after name
+
+  }
+
+  getRoom(num) {
+    // console.log('getRoom', num);
+    if (this.rooms[num])
+      return this.rooms[num];
 
     let stream = this.getResourceStream(num);
 
     let room = {};
     room.id = num;
-    room.width = stream.getUint16(4);
-    room.height = stream.getUint16(6);
-    room.imageOffset = stream.getUint16(10);
+    room.width = stream.getUint16LE(4);
+    room.height = stream.getUint16LE(6);
+    room.imageOffset = stream.getUint16LE(10);
     room.numObjects = stream.getUint8(20);
     room.numSounds = stream.getUint8(23);
     room.numScripts = stream.getUint8(24);
 
-    // Read objects
+    // Parse room objects
     room.objects = [];
 
-    // stream.seek(29 + 2 * room.numObjects);
-    // let offset = 29 + 2 * room.numObjects;
-    let offset = 29;
-
-    // if (room.id == 1)
-    //   console.log(room.id, 'obstart', offset);
-
-    for (let i = 0; i < room.numObjects; i++) {
+    for (let i = 0, offset = 29; i < room.numObjects; i++) {
       let ob = {};
-      ob.OBIMoffset = stream.getUint16(offset);
-      ob.OBCDoffset = stream.getUint16(offset + 2 * room.numObjects);
-
-      // if (room.id == 1)
-      //   console.log(ob.OBIMoffset, ob.OBCDoffset);
-
-      let objOffset = ob.OBCDoffset - 2;
-
-      // ob.id = stream.getUint8(objOffset + 6);
-      // ob.type = stream.getUint8(objOffset + 7);
-
-      ob.number = stream.getUint16(objOffset + 6);
-      ob.xPos = stream.getUint8(objOffset + 9) * 8;
-      ob.yPos = (stream.getUint8(objOffset + 10) & 0x7f) * 8;
-      // ob.parentState = (stream.getUint8(objOffset + 10) & 0x80) ? 1 : 0;
-      ob.width = stream.getUint8(objOffset + 11) * 8;
-      // ob.parent = stream.getUint8(objOffset + 12);
-      // ob.walkX = stream.getUint16(objOffset + 13);
-      // ob.walkY = stream.getUint16(objOffset + 15);
-      // ob.actorDir = stream.getUint8(objOffset + 17) & 7;
-      ob.height = stream.getUint8(objOffset + 17) & 0xf8;
-      ob.smapLen = stream.getUint16(ob.OBIMoffset);
-
-      room.objects.push(ob);
-
+      ob.OBIMoffset = stream.getUint16LE(offset);
+      ob.OBCDoffset = stream.getUint16LE(offset + 2 * room.numObjects);
+      this.parseRoomObject(stream, ob);
+      if (ob)
+        room.objects.push(ob);
       offset += 2;
     }
 
-    // if (room.id == 1)
-    //   console.log('obend', offset);
+    // let OBIMs = {};
+    // for (let i = room.objects.length - 1; i >= 0; i--) {
+    //   let ob = room.objects[i];
+    //   if (OBIMs[ob.OBIMoffset]) {
+    //     ob.hasImage = false;
+    //   } else {
+    //     OBIMs[ob.OBIMoffset] = ob.number;
+    //     ob.hasImage = true;
+    //   }
+    // }
 
     this.rooms[num] = room;
 

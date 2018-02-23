@@ -6,7 +6,8 @@ const Scumm3 = require('./scumm3/scumm3');
 const Scumm4 = require('./scumm4/scumm4');
 
 const RoomList = require('./ui/room_list');
-const RoomImage = require('./ui/room_image');
+const RoomDetail = require('./ui/room_detail');
+const CharacterMap = require('./ui/character_map');
 
 const fs = require('fs');
 const path = require('path');
@@ -15,145 +16,108 @@ const crypto = require('crypto');
 let app = {};
 let game;
 let rooms = [];
+let roomid = 0;
 let ui = {};
 
-function createImageFromData(src, width, height) {
-  if (src) {
-    let canvas = document.createElement('canvas');
-    canvas.width = width;
-    canvas.height = height;
-    let ctx = canvas.getContext('2d');
-    let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    for (var i = 0; i < imageData.data.length; i++) {
-      imageData.data[i] = src[i];
-    }
-    ctx.putImageData(imageData, 0, 0);
+let thumbWidth = 128;
+let thumbHeight = 80;
 
-    let image = new Image();
-    image.src = canvas.toDataURL();
 
-    return image;
-  }
-}
-
-function showRoomDetail(room) {
-  let roomImageData = game.getRoomImage(room);
-
-  let roomDetailEl = document.getElementById('room-detail');
-  roomDetailEl.style.display = 'initial';
-
-  let numberEl = document.getElementById('room-id');
-  let descEl = document.getElementById('room-desc');
-  let dimensionsEl = document.getElementById('room-dimensions');
-  let numObjectsEl = document.getElementById('room-num-objects');
-  let imageEl = document.getElementById('room-image-container');
-
-  numberEl.innerHTML = room.id;
-  descEl.innerHTML = room.name ? room.name : '';
-  dimensionsEl.innerHTML = room.width + ' x ' + room.height;
-  numObjectsEl.innerHTML = room.numObjects;
-
+function createThumbnailFromCanvas(image) {
   let canvas = document.createElement('canvas');
-  if (roomImageData) {
-    canvas.width = room.width;
-    canvas.height = room.height;
+  if (image) {
+    let ratio = (thumbWidth / image.width);
+    let width = thumbWidth;
+    let height = thumbHeight * ratio * (image.height / thumbHeight)
+
+    canvas.width = thumbWidth;
+    canvas.height = thumbHeight;
+
     let ctx = canvas.getContext('2d');
-    let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    for (var i = 0; i < imageData.data.length; i++) {
-      imageData.data[i] = roomImageData[i];
-    }
-    ctx.putImageData(imageData, 0, 0);
-    let image = new Image();
-    image.style.pointerEvents = 'none';
-    image.src = canvas.toDataURL();
-    ui.roomImage.setImage(image);
+    // ctx.fillStyle = 'black';
+    // ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    imageEl.style.display = 'initial';
+    ctx.imageSmoothingQuality = 'medium';
+    ctx.drawImage(image, 0, 0, canvas.width, height);
   } else {
-    imageEl.style.display = 'none';
+    canvas.width = thumbWidth;
+    canvas.height = thumbHeight;
   }
 
-  let objectsEl = document.getElementById('room-objects');
-  // let objectsEl = document.getElementById('room-objects');
-  objectsEl.innerHTML = '';
-
-  if (room.objects) {
-    for (var i = 0; i < room.objects.length; i++) {
-      let ob = room.objects[i];
-
-      let xPos = ob.xPos;
-      let yPos = ob.yPos;
-      let id = ob.id;
-      let number = ob.number;
-      let width = ob.width;
-      let height = ob.height;
-
-      let el = document.createElement('div');
-      el.classList.add('room-object');
-      el.innerHTML = `${number} [${xPos}, ${yPos}] [${width}, ${height}]`;
-
-      let imEl = document.createElement('div');
-      let pixelData = game.getRoomObjectImage(room.id, ob.number);
-      let image = createImageFromData(pixelData, ob.width, ob.height);
-      if (image) imEl.appendChild(image);
-
-      el.appendChild(imEl);
-
-      objectsEl.appendChild(el);
-    }
-
-    // let ob = room.objects[1];
-    // if (ob) {
-    //   let el = document.createElement('div');
-    //   el.innerHTML = `${ob.number} [${ob.xPos}, ${ob.yPos}] [${ob.width}, ${ob.height}]`;
-    //   objectsEl.appendChild(el);
-    //
-    //   let pixelData = game.getRoomObjectImage(room.id, ob.number);
-    //   let image = createImageFromData(pixelData, ob.width, ob.height);
-    //   objectsEl.appendChild(image);
-    // }
-  }
+  return canvas;
 }
 
-function refreshRoomList(roomids) {
+function renderRoomList(roomids) {
   rooms = [];
 
-  ui.roomList.clear();
+  let items = [];
 
   for (var i = 0; i < roomids.length; i++) {
-    let id = roomids[i];
-    let room = game.getRoom(id);
-    rooms[id] = room;
-    ui.roomList.createListItem(room);
-    setTimeout(() => {
-      let room = rooms[id];
-      let roomImageData = game.getRoomImage(room);
-      ui.roomList.setThumbnail(room.id, room.width, room.height, roomImageData);
-    }, Math.random()*20 + 25);
+    let room = game.getRoom(roomids[i]);
+
+    let bitmap = game.getRoomBitmap(room.id);
+    let canvas = Tools.createCanvasFromBuffer(bitmap, room.width, room.height);
+    let thumbnail = createThumbnailFromCanvas(canvas);
+
+    let model = {
+      id: room.id,
+      description: room.id,
+      image: thumbnail
+    }
+    items.push(model);
   }
+
+  ui.roomList = new RoomList({ items: items });
+  ui.roomList.on('select', (id) => {
+    showRoomDetail(id);
+  });
+
+  return ui.roomList.render();
 }
 
 function refreshElements() {
-
-  let roomDetailEl = document.getElementById('room-detail');
-  roomDetailEl.style.display = 'none';
-
-  // el = document.getElementById('room-image');
-  // if (el.firstChild) el.removeChild(el.firstChild);
-  // document.getElementById('room-id').innerHTML = '';
-  // document.getElementById('room-dimensions').innerHTML = '';
-  // document.getElementById('room-num-objects').innerHTML = '';
-  //
-  // let objectsEl = document.getElementById('room-objects');
-  // objectsEl.innerHTML = '';
-
   let roomids = game.getRoomList();
-  roomids = roomids.slice(0, 24);
-  console.log(roomids.length.toString(), 'rooms');
-  refreshRoomList(roomids);
+  console.log(roomids.length, 'rooms');
+
+  let roomListContainerEl = document.getElementById('room-list-container');
+  let roomListEl = renderRoomList(roomids);
+
+  if (roomListContainerEl.firstChild)
+    roomListContainerEl.removeChild(roomListContainerEl.firstChild);
+
+  roomListContainerEl.appendChild(roomListEl);
+
 
   let dropEl = document.getElementById('drop');
-  dropEl.style.display = 'none';
+  dropEl.style.visibility = 'hidden';
+
+
+  let el = document.getElementById('room-detail-container');
+  while (el.firstChild) el.removeChild(el.firstChild);
+
+
+  let model = { characters: [] };
+  let charset = game.charsets[0];
+
+  for (var i = 0; i < charset.numChars; i++) {
+    let ch = charset.getGlyph(i);
+    // let ch = game.getCharsetItem(i);
+    if (ch) {
+      let bitmap = game.getCharsetBitmap(i);
+      let image = Tools.createImageFromBuffer(bitmap, ch.width, ch.height);
+      model.characters.push({ width: ch.width, height: ch.height, image: image });
+    } else {
+      model.characters.push({ width: 8, height: 8 });
+    }
+  }
+
+  ui.characterMap = new CharacterMap(model);
+  let characterMapContainerEl = document.getElementById('character-map-container');
+  if (characterMapContainerEl) {
+    if (characterMapContainerEl.firstChild)
+      characterMapContainerEl.removeChild(characterMapContainerEl.firstChild);
+    characterMapContainerEl.appendChild(ui.characterMap.render());
+  }
 }
 
 function detect(rootPath) {
@@ -166,11 +130,76 @@ function detect(rootPath) {
     else if (detector.version == 4) {
       game = new Scumm4(detector);
     }
-    if (game) {
-      console.log(game.name);
-      refreshElements();
-    }
+    if (game) refreshElements();
   }
+}
+
+
+function showRoomDetail(id) {
+
+  // if (roomid == id) return;
+  roomid = id;
+
+  // console.log('showRoomDetail', id);
+  // console.log('showRoomDetail', id);
+  let el = document.getElementById('room-detail-container');
+  // el.style.height = '640px';
+  while (el.firstChild) el.removeChild(el.firstChild);
+
+  // let room = game.getRoom(id);
+  // ui.roomDetail.room = room;
+  // ui.roomDetail.bitmap = game.getRoomBitmap(room.id);
+  // let bitmaps = [];
+  // let masks = [];
+  // for (var i = 0; i < room.objects.length; i++) {
+  //   let ob = room.objects[i];
+  //   let image = game.getRoomObjectBitmap(id, ob.number);
+  //   bitmaps.push(image);
+  // }
+  // ui.roomDetail.objectBitmaps = bitmaps;
+  // ui.roomDetail.objectMasks = masks;
+  // ui.roomDetail.render();
+  // ui.roomDetail.show();
+
+  let room = game.getRoom(id);
+  let objects = [];
+  for (var i = 0; i < room.objects.length; i++) {
+    let ob = room.objects[i];
+    let image = Tools.createImageFromBuffer(game.getRoomObjectBitmap(id, ob.number), ob.width, ob.height);
+    // bitmaps.push(image);
+    objects.push({
+      number: ob.number,
+      x_pos: ob.x_pos,
+      y_pos: ob.y_pos,
+      width: ob.width,
+      height: ob.height,
+      name: ob.name,
+      parent: ob.parent,
+      parentstate: ob.parentstate,
+      bytes: ob.bytes,
+      image: image,
+    });
+  }
+  let model = {
+    id: room.id,
+    name: room.name,
+    width: room.width,
+    height: room.height,
+    image: Tools.createImageFromBuffer(game.getRoomBitmap(id), room.width, room.height),
+    objects: objects
+  }
+
+  let roomDetail = new RoomDetail(model);
+  el.appendChild(roomDetail.render());
+}
+
+function createElements() {
+  // let el = document.getElementById('room-list-container');
+  // let model = {};
+  // ui.roomList = new RoomList(model);
+  // el.appendChild(ui.roomList.render());
+  // ui.roomDetail = new RoomDetail(model);
+  // ui.roomDetail.hide();
 }
 
 function onKeyDown(event) {
@@ -208,14 +237,6 @@ function initEventListeners() {
   window.addEventListener('dragenter', onDragEnter);
   window.addEventListener('dragend', onDragEnd);
   window.addEventListener('contextmenu', onContextMenu);
-}
-
-function createElements() {
-  ui.roomList = new RoomList({el: document.getElementById('room-list')});
-  ui.roomList.on('select', (id) => {
-    showRoomDetail(rooms[id]);
-  });
-  ui.roomImage = new RoomImage({el: document.getElementById('room-image')});
 }
 
 function ready() {

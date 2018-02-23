@@ -1,90 +1,125 @@
 const {EventEmitter} = require('events');
 
+const html = require('../html');
+
 let thumbWidth = 128;
-let thumbHeight = ((thumbWidth / 320) * 144)>>0;
+let thumbHeight = 80;
 
 class RoomList extends EventEmitter {
-  constructor(params={}) {
+  constructor(model={}) {
     super();
-    this.el = params.el || document.createElement('div');
-
-    this.containerEl = document.createElement('div');
-    this.containerEl.classList.add('room-list-container');
-
-    this.el.addEventListener('mousedown', this);
-    this.el.addEventListener('wheel', this);
-
-    this.el.appendChild(this.containerEl);
+    this.model = model;
     this.direction = 1;
   }
 
+  render() {
+    let component = html.div().class('room-list');
+    let inner = html.div().class('room-list-items');
+
+    // this.containerEl = document.createElement('div');
+    // this.containerEl.classList.add('room-list-container');
+
+    if (this.model.items) {
+      for (var i = 0; i < this.model.items.length; i++) {
+        let item = this.model.items[i];
+        let el = this.renderListItem(item);
+        inner.append(el);
+      }
+    }
+
+    component.append(inner);
+
+    this.containerEl = inner.dom();
+    this.el = component.dom();
+
+    this.el.addEventListener('mousedown', this);
+    this.el.addEventListener('wheel', this);
+    // this.el.appendChild(this.containerEl);
+
+    return this.el;
+  }
+
   clear() {
-    while (this.containerEl.firstChild) {
-      this.containerEl.removeChild(this.containerEl.firstChild);
-    }
+    this.el.innerHTML = '';
+    // while (this.containerEl.firstChild) {
+    //   this.containerEl.removeChild(this.containerEl.firstChild);
+    // }
   }
 
-  createListItem(room) {
-    let el = document.createElement('div');
-    el.dataset.id = room.id;
-    el.classList.add('room-list-item');
+  renderListItem(item) {
+    let component = html.div()
+      .dataset('id', item.id)
+      .class('room-list-item')
+      .append(
+        html.div()
+          .attribute('id', 'thumbnail' + item.id)
+          .class('room-list-item-image')
+          .append(item.image)
+      )
+      .append(html.div().class('room-list-item-title').append(html.text(item.description)))
+      .on('click', (event) => {
+        let id = event.target.dataset.id;
+        if (!this.scrolled) {
+          this.emit('select', id);
+        }
+        this.scrolled = false;
+      })
+    ;
 
-    let textEl = document.createElement('div');
-    textEl.classList.add('room-list-item-text');
-    textEl.style.pointerEvents = 'none';
-    textEl.innerHTML = `${room.id}`;
+    return component.dom();
 
-    let thumbEl = document.createElement('div');
-    thumbEl.classList.add('room-list-item-image');
-    thumbEl.id = 'thumbnail-' + room.id;
-    thumbEl.style.pointerEvents = 'none';
-    thumbEl.style.width = thumbWidth + 'px';
-    thumbEl.style.height = thumbHeight + 'px';
-    el.appendChild(thumbEl);
-
-    el.appendChild(textEl);
-
-    el.onclick = (event) => {
-      if (!this.scrolled) {
-        this.emit('select', event.target.dataset.id);
-      }
-      this.scrolled = false;
-    };
-
-    this.containerEl.appendChild(el);
+    // let el = document.createElement('div');
+    // el.dataset.id = room.id;
+    // el.classList.add('room-list-item');
+    //
+    // let textEl = document.createElement('div');
+    // textEl.classList.add('room-list-item-text');
+    // textEl.style.pointerEvents = 'none';
+    // textEl.innerHTML = room.id + ' ' + (room.name || '');
+    //
+    // // el.appendChild(textEl);
+    //
+    // let thumbEl = document.createElement('div');
+    // thumbEl.classList.add('room-list-item-image');
+    // thumbEl.id = 'thumbnail-' + room.id;
+    // thumbEl.style.pointerEvents = 'none';
+    // thumbEl.style.width = thumbWidth + 'px';
+    // thumbEl.style.height = thumbHeight + 'px';
+    // el.appendChild(thumbEl);
+    //
+    // el.onclick = (event) => {
+    //   if (!this.scrolled) {
+    //     this.emit('select', event.target.dataset.id);
+    //   }
+    //   this.scrolled = false;
+    // };
+    //
+    // // this.containerEl.appendChild(el);
+    // this.el.appendChild(el);
   }
 
-  setThumbnail(id, width, height, roomImageData) {
-    let canvas = document.createElement('canvas');
-    canvas.width = thumbWidth;
-    canvas.height = thumbHeight;
-
-    if (roomImageData) {
-      let canvasTemp = document.createElement('canvas');
-      canvasTemp.width = width;
-      canvasTemp.height = height;
-      let ctx = canvasTemp.getContext('2d');
-      let imageData = ctx.getImageData(0, 0, canvasTemp.width, canvasTemp.height);
-      for (var i = 0; i < imageData.data.length; i++) {
-        imageData.data[i] = roomImageData[i];
-      }
-      ctx.putImageData(imageData, 0, 0);
-
-      ctx = canvas.getContext('2d');
-      ctx.imageSmoothingQuality = 'medium';
-      ctx.drawImage(canvasTemp, 0, 0, canvas.width, (canvas.height * (320/width))>>0);
-    }
-
-    let image = new Image();
-    image.id = id;
-    image.onload = (event) => {
-      let id = event.target.id;
-      let el = document.getElementById('thumbnail-' + id);
-      el.appendChild(event.target);
-    };
-    image.src = canvas.toDataURL();
-
-    image.style.pointerEvents = 'none';
+  setThumbnail(id, image) {
+    // let canvas = document.createElement('canvas');
+    // canvas.width = thumbWidth;
+    // canvas.height = thumbHeight;
+    // let ctx = canvas.getContext('2d');
+    // ctx.fillStyle = 'black';
+    // ctx.fillRect(0, 0, canvas.width, canvas.height);
+    // ctx.imageSmoothingQuality = 'medium';
+    //
+    // let ratio = (canvas.width / image.width);
+    //
+    // ctx.drawImage(image, 0, 0, canvas.width, canvas.height * ratio * (image.height / canvas.height));
+    //
+    // let thumb = document.createElement('img');
+    // thumb.id = id;
+    // thumb.style.pointerEvents = 'none';
+    // thumb.onload = (event) => {
+    //   let id = event.target.id;
+    //   let el = document.getElementById('thumbnail-' + id);
+    //   if (el) el.appendChild(event.target);
+    // };
+    // thumb.src = canvas.toDataURL();
   }
 
   startDrag() {
@@ -106,10 +141,13 @@ class RoomList extends EventEmitter {
   }
 
   onMouseDown(event) {
+    // console.log('down');
     this.down = true;
+    this.scrolled = false;
     this.mouseDownX = event.clientX;
     this.mouseDownY = event.clientY;
     window.addEventListener('mousemove', this);
+    // console.log(event.target);
   }
 
   onMouseUp(event) {
@@ -120,9 +158,11 @@ class RoomList extends EventEmitter {
     if ((!event.buttons & 1)) {
       this.drag = false;
       this.down = false;
+      return;
     }
     if (this.down) {
       if (this.drag) {
+        // console.log('drag');
         if (this.direction)
           this.el.scrollTop -= event.movementY;
         else
@@ -131,7 +171,7 @@ class RoomList extends EventEmitter {
       } else {
         let dx = event.clientX - this.mouseDownX;
         let dy = event.clientY - this.mouseDownY;
-        if (event.buttons & 1 && Math.abs(this.direction?dy:dx) > 2) {
+        if (event.buttons & 1 && Math.abs(this.direction?dy:dx) > 4) {
           if (this.direction) {
             this.el.scrollTop -= dy;
           } else {

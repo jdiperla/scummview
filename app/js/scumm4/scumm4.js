@@ -6,267 +6,484 @@ const Stream = require('../stream');
 const Detector = require('../detector');
 const Graphics = require('../graphics');
 const Game = require('../game');
+const Charset = require('./charset');
 
 
 class Scumm4 extends Game {
   constructor(detector) {
-    super();
-    this.rootPath = detector.rootPath;
-    this.roomNames = [];
-    this.roomFileOffsets = []; // room lookup table with file no and offset
-    this.resource = []; // resource files
+    super(detector);
+    this.graphics = new Graphics();
     this.detect();
   }
 
   detect() {
-    this.readIndex();
-    this.readResourceFile(1);
-    this.readResourceFile(2);
-    this.readResourceFile(3);
-    this.readResourceFile(4);
-    this.readResourceFile(9);
+    this.parseIndex();
+    this.parseCharset();
 
-    try {
-      let room = this.getRoom(1);
-      if (room) {
-        let pixelData = this.getRoomImageData(room);
-        let hash = Tools.checksum(pixelData);
+    let room = this.getRoom(1);
+
+    if (room) {
+      let pixelsRGBA = this.getRoomBitmap(room.id);
+      if (pixelsRGBA) {
+        let hash = Tools.checksum(pixelsRGBA);
         console.log(hash);
-
         let info = Detector.gameInfoFromHash(hash);
         if (info) {
+          console.log(info.name);
           this.name = info.name;
           this.id = info.id;
           this.version = info.version;
         }
       }
-    } catch (err) {
-      console.log(err.message);
     }
   }
 
-  readIndex() {
-    let buffer = fs.readFileSync(path.join(this.rootPath, '000.lfl'));
-    let stream = new Stream(new Uint8Array(buffer));
+  makeIndexFilename(num) {
+    return num.toString().padStart(3, '0') + '.lfl';
+  }
 
-    while (!stream.atEnd()) {
-      let blocksize = stream.getUint32();
-      let blocktype = stream.getUint16();
+  getCharsetBitmap(num, setnum=0) {
+    let charset = this.charsets[setnum];
+    let ch = this.getCharsetItem(num, setnum);
 
-      if (blocktype == 0x4e52) { //NR
-        // console.log('NR');
-        for (let r; r = stream.getUint8(); ) {
-          let bytes = stream.getBytes(9);
-          let string = '';
-          for (var i = 0; i < bytes.length; i++) {
-            bytes[i] ^= 0xFF;
-            string += String.fromCharCode(bytes[i]);
-          }
-          this.roomNames.push({ index: r, name: string });
-        }
-      }
-      else if (blocktype == 0x5230) { //R0
-        // console.log('R0');
-        this.numRooms = stream.getUint16();
-        for (let i = 0; i < this.numRooms; i++) {
-          let fileno = stream.getUint8();
-          let roomoffs = stream.getUint32();
-          this.roomFileOffsets.push({ fileno: fileno, offset: roomoffs });
-      	}
-      }
-      else if (blocktype == 0x5330) { //S0
-        // console.log('S0');
-        this.numScripts = stream.getUint16();
-        stream.skip(blocksize - 8);
-      }
-      else if (blocktype == 0x4e30) { //N0
-        // console.log('N0');
-        this.numSounds = stream.getUint16();
-        stream.skip(blocksize - 8);
-      }
-      else if (blocktype == 0x4330) { //C0
-        // console.log('C0');
-        this.numCostumes = stream.getUint16();
-        stream.skip(blocksize - 8);
-      }
-      else if (blocktype == 0x4f30) { //O0
-        // console.log('O0');
-        this.numGlobalObjects = stream.getUint16();
-        stream.skip(blocksize - 8);
-      } else {
-        console.log('??');
-        stream.skip(blocksize - 8);
+    if (!ch) return;
+    // console.log('getCharsetBitmap', num, setnum);
+
+    if (charset.bitsPerPixel !== 1) return;
+
+    let w = ch.width;
+    let h = ch.height;
+
+    let pixels = new Uint8Array(ch.width * ch.height * 4);
+    for (var i = 0; i < ch.width*ch.height; i++) {
+      pixels[i*4] = 255;
+      pixels[i*4 + 3] = 255;
+    }
+
+    for (var i = 0, x = 0, y = 0; i < ch.data.length * 8; i++) {
+      let byte = ch.data[(i / 8) >> 0];
+      let bit = Math.pow(2, 7-(i % 8));
+      let value = (byte & bit ? 255 : 0);
+
+      let index = (y * ch.width + x) * 4;
+      pixels[index + 0] = value;
+      pixels[index + 1] = value;
+      pixels[index + 2] = value;
+      pixels[index + 3] = 255;
+
+      x++;
+      if (x == ch.width) {
+        y++;
+        x = 0;
       }
     }
 
+    return pixels;
   }
 
-  resourceFilename(num) {
-    return 'disk' + (num.toString().padStart(2, '0')) + '.lec';
+  getCharsetItem(num, setnum=0) {
+    return this.charsets[setnum].characters[num];
   }
 
-  readResourceFile(num) {
-    let filename = this.resourceFilename(num);
-    let data;
+  parseCharset(num=1) {
+    if (num < 1) return;
+
+    let buffer;
+
     try {
-      data = fs.readFileSync(path.join(this.rootPath, filename));
-      data = Tools.decrypt(data, 0x69);
+      buffer = fs.readFileSync(path.join(this.rootPath, (900 + num) + '.lfl'));
     } catch (err) {
       console.log(err.message);
       return;
     }
 
-    let stream = new Stream(data);
+    let stream = new Stream(buffer);
+    // let charset = {};
 
-    let blocksize, blocktype;
+    let size = stream.getUint32LE(0) + 15;
+    let colorMap = stream.getBytes(5, 16);
+    let bitsPerPixel = stream.getUint8(21);
+    let fontHeight = stream.getUint8(22);
+    let numChars = stream.getUint16LE(23);
 
-    this.resource[filename] = {};
-    this.resource[filename].cache = data;
-    this.resource[filename].offsetTable = [];
+    // console.log('charset'+num, bitsPerPixel, height, numChars);
+
+    let offset = 4 + 17 + 4;
+
+    let characters = [];
+
+    // for (var i = 0; i < numChars; i++) {
+    // let _a = numChars;
+
+    for (var i = 0; i < numChars; i++) {
+      let offs = stream.getUint32LE(offset + i * 4);
+      if (offs) {
+        let ch = {};
+        offs += 21;
+        ch.width = stream.getUint8(offs);
+        ch.height = stream.getUint8(offs + 1);
+        ch.x = stream.getUint8(offs + 2);
+        ch.y = stream.getUint8(offs + 3);
+        let sz = (ch.width * ch.height) / (bitsPerPixel * 8);
+        ch.data = stream.getBytes(offs + 4, sz);
+        characters[i] = ch;
+        // console.log(i, sz, ch);
+      } else {
+        characters[i] = null;
+        // console.log(i, 'null');
+      }
+    }
+
+    let charset = new Charset({ numChars: numChars, fontHeight: fontHeight, colorMap: colorMap, bitsPerPixel: bitsPerPixel })
+    for (var i = 0; i < characters.length; i++)
+      charset.addGlyph(characters[i]);
+
+    this.charsets[num-1] = charset;
+
+    // console.log(this.charsets[num-1]);
+  }
+
+  parseIndex() {
+    // console.log('parseIndex');
+    let stream = this.getFileStream(path.join(this.rootPath, this.makeIndexFilename(0)));
+    let offset = 0;
+
+    while (offset < stream.size) {
+      let blocksize = stream.getUint32LE(offset);
+      let blocktype = stream.getUint16LE(offset + 4);
+      offset += 6;
+
+      if (blocktype == 0x4e52) { //NR
+        // console.log('NR');
+        for (let room; room = stream.getUint8(offset++); ) {
+          let bytes = stream.getBytes(offset, 9);
+          offset += bytes.length;
+          let string = '';
+          for (var i = 0; i < bytes.length; i++) {
+            let b = (bytes[i] ^ 0xFF);
+            if (b == 0x0) break;
+            string += String.fromCharCode(b);
+          }
+          this.roomNames[room] = string;
+        }
+      }
+      else if (blocktype == 0x5230) { //R0
+        // console.log('R0');
+        this.numRooms = stream.getUint16LE(offset);
+        offset += 2;
+        for (let i = 0; i < this.numRooms; i++) {
+          let filenum = stream.getUint8(offset);
+          let roomoffs = stream.getUint32LE(offset + 1);
+          this.roomFileTable[i] = filenum;
+          offset += 5;
+      	}
+      }
+      else if (blocktype == 0x5330) { //S0
+        // console.log('S0');
+        this.numScripts = stream.getUint16LE(offset);
+        offset += 2;
+        // stream.skip(blocksize - 8);
+        offset += blocksize - 8;
+      }
+      else if (blocktype == 0x4e30) { //N0
+        // console.log('N0');
+        this.numSounds = stream.getUint16LE(offset);
+        offset += 2;
+        // stream.skip(blocksize - 8);
+        offset += blocksize - 8;
+      }
+      else if (blocktype == 0x4330) { //C0
+        // console.log('C0');
+        this.numCostumes = stream.getUint16LE(offset);
+        offset += 2;
+        // stream.skip(blocksize - 8);
+        offset += blocksize - 8;
+      }
+      else if (blocktype == 0x4f30) { //O0
+        // console.log('O0');
+        this.numGlobalObjects = stream.getUint16LE(offset);
+        offset += 2;
+        // stream.skip(blocksize - 8);
+        offset += blocksize - 8;
+      } else {
+        console.log('??');
+        // stream.skip(blocksize - 8);
+        offset += blocksize - 8;
+      }
+    }
+  }
+
+  makeResourceFilename(num) {
+    return 'disk' + (num.toString().padStart(2, '0')) + '.lec';
+  }
+
+  getResourceStream(num) {
+    let filename = this.makeResourceFilename(num);
+
+    // if (!this.resources[filename]) {
+    //   this.parseResourceFile(filenum);
+    // }
+
+    if (this.fileCache[filename]) {
+      return this.fileCache[filename]
+    }
+    let stream = this.getFileStream(path.join(this.rootPath, filename), 0x69);
+    this.fileCache[filename] = stream;
+    return stream;
+  }
+
+  parseResourceFile(num) {
+    // console.log('parseResourceFile', num);
+
+    let filename = this.makeResourceFilename(num);
+    let stream = this.getResourceStream(num);
+
+    let blocksize, blocktype, offset = 0;
+
+    this.resources[filename] = { };
 
     // read main block header -- 'LE'
-    blocksize = stream.getUint32();
-    blocktype = stream.getUint16();
+    blocksize = stream.getUint32LE(offset);
+    blocktype = stream.getUint16LE(offset + 4);
     // console.log('LE', blocksize, blocktype.toString(16));
 
     // read room offset table -- 'FO'
-    blocksize = stream.getUint32();
-    blocktype = stream.getUint16();
+    blocksize = stream.getUint32LE(offset + 6);
+    blocktype = stream.getUint16LE(offset + 10);
     // console.log('FO', blocktype.toString(16));
 
     // number of rooms in this file
-    let numRooms = stream.getUint8();
-    this.resource[filename].numRooms = numRooms;
+    let numRooms = stream.getUint8(offset + 12);
+    // this.resources[filename].numRooms = numRooms;
+
+    this.resources[filename].numRooms = numRooms;
+
+    offset += 13;
 
     for (var i = 0; i < numRooms; i++) {
-      let roomno = stream.getUint8(); //buffer[offset];
-      let offs = stream.getUint32();
-      this.resource[filename].offsetTable.push({ roomno: roomno, offset: offs });
+      let roomno = stream.getUint8(offset);
+      let offs = stream.getUint32LE(offset + 1);
+      // this.resources[filename].offsetTable.push({ roomno: roomno, offset: offs });
+      // this.resources[filename].roomOffsets[roomno] = offs;
+      this.roomOffsets[roomno] = offs;
+      offset += 5;
     }
 
   }
 
-  getRoomImageData(room) {
-    let block = room.blocks.find(block => {
-      return block.type == 0x4d42;
-    })
+  getBlockName(value) {
+    return String.fromCharCode(value & 0xff) + String.fromCharCode((value >> 8) & 0xff);
+  }
+
+  getRoomBitmap(num) {
+    // console.log('getRoomBitmap', num);
+    let room = this.getRoom(num);
+    let block = room.blocks.find(element => { return element.name == 'BM'; });
 
     if (!block) return; // no image block ?
 
     let imageChunk;
 
-    let entry = this.roomFileOffsets[room.id];
-    if (entry.fileno) {
-      let filename = this.resourceFilename(entry.fileno);
-      let data = this.resource[filename].cache;
-      let stream = new Stream(data);
-      stream.skip(block.offset + 6);
-      imageChunk = stream.getBytes(block.size - 6);
+    let filenum = this.roomFileTable[room.id];
+    if (filenum) {
+      let stream = this.getResourceStream(filenum);
+      imageChunk = stream.getBytes(block.offset + 6, block.size - 6);
     }
-
     if (imageChunk) {
-      let encodedPixels = imageChunk;
-      let pixels = new Array(room.width * room.height);
-
-      for (var i = 0; i < room.width / 8; i++) {
-        Graphics.drawStripEGA(0, 0, pixels, room.width, encodedPixels, room.height, i);
-      }
-
-      let pixelData = new Uint8Array(room.width * room.height * 4);
-
-      for (let j = 0; j < room.height; j++ ) {
-        for (let i = 0; i < room.width; i++) {
-          let rgba = pixels[j * room.width + (i)];
-          pixelData[(j * room.width + i) * 4] = (rgba & 0xFF0000) >> 16;
-          pixelData[(j * room.width + i) * 4 + 1] = (rgba & 0xFF00) >> 8;
-          pixelData[(j * room.width + i) * 4 + 2] = (rgba & 0xFF);
-          pixelData[(j * room.width + i) * 4 + 3] = 255;
-        }
-      }
-
-      return pixelData;
+      let pixels = this.graphics.decodeSmap(imageChunk, room.width, room.height);
+      let pixelsRGBA = this.graphics.indexedToRGBA(pixels);
+      return pixelsRGBA;
     }
   }
 
-  getRoomBlock(stream) {
+  getRoomObject(roomid, number) {
+    let room = this.getRoom(roomid);
+    let ob = room.objects.find(element => element.number == number);
+    return ob;
+  }
+
+  getRoomObjectBitmap(roomid, number) {
+    let room = this.getRoom(roomid);
+    if (room) {
+      let ob = this.getRoomObject(roomid, number);
+      if (!ob) return;
+
+      let filenum = this.roomFileTable[room.id];
+      let stream = this.getResourceStream(filenum);
+
+      let block = room.blocks.find(element => {
+        if (element.name == 'OI') {
+          let obn = stream.getUint16LE(element.offset + 6);
+          return obn == number;
+        }
+      });
+
+      if (block) {
+        let size = stream.getUint32LE(block.offset);
+        // console.log(number, size);
+        if (size == 8) return;
+        let imageChunk = stream.getBytes(block.offset + 8, size - 8);
+        let pixels = this.graphics.decodeSmap(imageChunk, ob.width, ob.height);
+        let pixelsRGBA = this.graphics.indexedToRGBA(pixels);
+        return pixelsRGBA;
+      }
+    }
+  }
+
+  parseRoomObject(stream, ob) {
+    let offset = ob.OBCDoffset;
+
+    ob.bytes = stream.getBytes(offset + 6, 3);
+
+    ob.x_pos = stream.getUint8(offset + 9) * 8;
+    ob.y_pos = (stream.getUint8(offset + 10) & 0x7f) * 8;
+    ob.parentstate = (stream.getUint8(offset + 10) & 0x80) ? 1 : 0;
+    ob.width = stream.getUint8(offset + 11) * 8;
+    ob.parent = stream.getUint8(offset + 12);
+    ob.walk_x = stream.getUint16LE(offset + 13);
+    ob.walk_y = stream.getUint16LE(offset + 15);
+    ob.actordir = stream.getUint8(offset + 17) & 7;
+    ob.height = stream.getUint8(offset + 17) & 0xf8;
+    ob.nameOffset = stream.getUint8(offset + 18);
+
+    // Verb table: offset + 19
+
+    ob.name = '';
+    for (var i = 0, offs = ob.OBCDoffset + ob.nameOffset; i < 32; i++) {
+      let b = stream.getUint8(offs++);
+      if (b == 0x0 || b == '@'.charCodeAt()) break;
+      ob.name += String.fromCharCode(b);
+    }
+
+  }
+
+  parseRoom(num) {
+    // console.log('parseRoom', num);
     let blocksize, blocktype;
-    let room = { blocks: [] };
+    let filenum = this.roomFileTable[num];
+    if (!filenum) return;
 
-    room.id = stream.getUint16();
-    // console.log('room:', room.num);
+    let filename = this.makeResourceFilename(filenum);
 
-    blocksize = stream.getUint32();
-    blocktype = stream.getUint16();
-    // console.log('RO', blocktype.toString(16), blocksize);
+    if (!this.resources[filename]) {
+      this.parseResourceFile(filenum);
+    }
 
-    let len = stream.offset + blocksize - 6;
+    let stream = this.getResourceStream(filenum);
+    let offset = this.roomOffsets[num];
 
-    blocksize = stream.getUint32();
-    blocktype = stream.getUint16();
-    // console.log('HD', blocktype.toString(16), blocksize);
+    // LF
+    blocksize = stream.getUint32LE(offset);
+    blocktype = stream.getUint16LE(offset + 4);
 
-    room.width = stream.getUint16();
-    room.height = stream.getUint16();
-    room.numObjects = stream.getUint16();
+    let roomid = stream.getUint16LE(offset + 6);
 
-    // console.log(room.width, room.height, room.numObjects);
+    let room = {};
+    room.id = roomid;
+    room.name = this.getRoomName(room.id);
+    room.offset = offset + 8;
 
-    while (stream.offset < len) {
-      blocksize = stream.getUint32();
-      blocktype = stream.getUint16();
-      // room.blocks.push({ type: blocktype, data: stream.getBytes(blocksize - 6) });
-      room.blocks.push({ type: blocktype, size: blocksize, offset: stream.offset - 6 });
-      stream.skip(blocksize - 6);
+    // RO
+    blocksize = stream.getUint32LE(offset + 8);
+    blocktype = stream.getUint16LE(offset + 12);
+
+    let endOffset = offset + 14 + blocksize - 6;
+
+    // HD
+    blocksize = stream.getUint32LE(offset + 14);
+    blocktype = stream.getUint16LE(offset + 18);
+
+    room.width = stream.getUint16LE(offset + 20);
+    room.height = stream.getUint16LE(offset + 22);
+    room.numObjects = stream.getUint16LE(offset + 24);
+
+    room.objects = [];
+
+    offset += 26;
+
+    // Parse room sub-blocks
+
+    let blocks = [];
+
+    while (offset < endOffset) {
+      blocksize = stream.getUint32LE(offset);
+      blocktype = stream.getUint16LE(offset + 4);
+      offset += 6;
+      blocks.push({ type: blocktype, size: blocksize, name: this.getBlockName(blocktype), offset: offset - 6 });
+      offset += blocksize - 6;
+    }
+
+    room.blocks = blocks;
+
+    room.OCs = 0;
+    room.OIs = 0;
+
+    // Parse room objects
+
+    for (var i = 0; i < room.blocks.length; i++) {
+      let block = room.blocks[i];
+      let offset = block.offset;
+      if (block.name == 'OC') {
+        let number = stream.getUint16LE(offset + 6);
+        room.objects.push({ number: number, OBCDoffset: offset });
+      }
+      // if (block.name == 'OC') {
+      //   room.OCs++;
+      //   let number = stream.getUint16LE(offset + 6);
+      //   // let ob = this.getRoomObject(room.id, number); ////room.objects[number];
+      //   let ob = room.objects.find(element => { return element.number == number; });
+      //   if (ob) {
+      //     ob.OBCDoffset = block.offset;
+      //   } else {
+      //     ob = { number: number, OBCDoffset: offset };
+      //     room.objects.push(ob);
+      //     // room.objects[number] = ob;
+      //   }
+      // } else if (block.name == 'OI') {
+      //   room.OIs++;
+      //   let number = stream.getUint16LE(offset + 6);
+      //   // let ob = this.getRoomObject(room.id, number); //room.objects[number];
+      //   let ob = room.objects.find(element => { return element.number == number; });
+      //   if (ob) {
+      //     ob.OBIMoffset = block.offset;
+      //   } else {
+      //     ob = { number: number, OBIMoffset: offset };
+      //     room.objects.push(ob);
+      //     // room.objects[number] = ob;
+      //   }
+      // }
+    }
+
+    for (var i = 0; i < room.objects.length; i++) {
+      let ob = room.objects[i];
+      this.parseRoomObject(stream, room.objects[i]);
     }
 
     return room;
   }
 
-  getRoomName(id) {
-    let entry = this.roomNames.find(entry => {
-      return entry.index == id;
-    });
-    if (entry) {
-      return entry.name;
-    }
+  getRoomName(num) {
+    return this.roomNames[num];
   }
 
   getRoom(num) {
-    let entry = this.roomFileOffsets[num];
-    if (entry) {
-      if (entry.fileno) {
-        let filename = this.resourceFilename(entry.fileno);
-        let data = this.resource[filename].cache;
-
-        let stream = new Stream(data);
-        let table = this.resource[filename].offsetTable;
-
-        let ot = table.find(element => {
-          return element.roomno == num;
-        });
-        if (ot) {
-          stream.skip(ot.offset);
-
-          // LF
-          let blocksize = stream.getUint32();
-          let blocktype = stream.getUint16();
-
-          let room = this.getRoomBlock(stream);
-          if (room) {
-            let name = this.getRoomName(room.id);
-            room.name = name;
-            return room;
-          }
-        }
-      }
+    // console.log('getRoom', num);
+    if (this.rooms[num]) {
+      return this.rooms[num];
     }
+
+    let room = this.parseRoom(num);
+    this.rooms[num] = room;
+
+    // console.log(room);
+
+    return room;
   }
 
   getRoomList() {
     let list = [];
-    for (var i = 0; i < this.roomFileOffsets.length; i++) {
-      let entry = this.roomFileOffsets[i];
-      if (entry.fileno) {
+    for (var i = 0; i < this.roomFileTable.length; i++) {
+      if (this.roomFileTable[i]) {
         list.push(i);
       }
     }

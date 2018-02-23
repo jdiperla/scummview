@@ -2,12 +2,35 @@ body, html {
   font-family: sans-serif;
   margin: 0;
   padding: 0;
-  height: 100vh;
   user-select: none;
   -webkit-user-select: none;
   cursor: default;
-  background: black;
+  /* background: black; */
+  background: lightgray;
   overflow: hidden;
+
+  width: 100vw;
+  height: 100vh;
+}
+
+.property-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.property-label {
+  text-align: right;
+  color: rgba(0, 0, 0, 0.65);
+  padding: 2px;
+}
+
+.property-value {
+  color: black;
+  padding: 2px;
+}
+
+.divider {
+  background: lightgray;
 }
 
 #drop {
@@ -18,117 +41,271 @@ body, html {
   bottom: 0px;
   left: 0px;
   width: 100vw;
-  height: 36px;
+  height: 100vh;
   box-sizing: border-box;
   background: rgb(240, 240, 240);
   z-index: 100;
+  opacity: 0;
+  /* visibility: hidden; */
+}
+
+#main {
+  display: grid;
+  /* grid-template-columns: 100vw; */
+  /* grid-template-columns: 1fr; */
+  grid-template-columns: 64px 1fr;
+
+  /* width: 100vw; */
+  /* height: 100vh; */
+
+  /* grid-template-rows: 1fr; */
+  /* height: 100%; */
+  /* grid-gap: 8px; */
+  /* background: pink; */
+  /* border: 1px solid red; */
+  /* height: 80vh; */
+  box-sizing: border-box;
+  /* height: 100%; */
+  /* width: 100vw; */
+  /* height: 100vh; */
 }
 
 #content {
-  display: flex;
-  /* flex-direction: column; */
-}
-
-#room-list {
-  /* flex: auto; */
-
-  /* height: calc(100vh - 16px); */
-  /* height: 50vh; */
-  /* max-width: 400px; */
-  /* min-width: 400px; */
-  /* margin: 8px 8px 0px 8px; */
-  display: flex;
-
-  height: 100vh;
-  width: 384px;
-  min-width: 384px;
-
-  overflow: hidden;
-  /* border: 1px solid red; */
-
-  box-sizing: border-box;
-}
-
-.room-list-container {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
   /* display: flex; */
   /* flex-direction: column; */
-  /* flex-wrap: wrap; */
+  /* grid-template-rows: 1fr max-content; */
+  /* width: 480px; */
 
+  grid-template-columns: 390px 1fr;
+
+  /* width: 100%; */
+  /* width: calc(100vw - 64px); */
+  /* width: 320px; */
+  /* height: 100vh; */
+  /* width: 100%; */
+  /* overflow: hidden; */
+  height: 100vh;
+  /* box-sizing: border-box;*/
+  /* border: 1px solid black; */
+  /* background: black; */
+}
+
+#character-map-container {
+  grid-column-start: 1;
+  grid-column-end: 3;
+  /* backgr */
+  /* background: gray; */
+  padding: 16px;
+}
+
+.character-map {
+  /* display: grid; */
+  /* grid-template-columns: repeat(auto-fill, minmax(8px, max-content)); */
+  /* grid-gap: 2px; */
+  display: flex;
+  flex-wrap: wrap;
+  /* padding: 8px; */
+}
+
+.character-map-item {
+  display: flex;
+  /* margin: 1px; */
+  background: gray;
+  /* overflow: hidden; */
+  border: 1px solid gray;
+}
+
+.null-character {
+  width: 8px;
+  height: 8px;
+  min-width: 8px;
+  min-height: 8px;
+  max-width: 8px;
+  max-height: 8px;
+  background: blue;
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: lightgray;
+  /* color: black; */
+  padding: 4px 8px 4px 8px;
+  /* width: max-content; */
+}
+
+#tabs-container {
+  display: flex;
+  flex-direction: column;
+  /* flex: auto; */
+  /* border: 1px solid blue; */
+  /* background: cyan; */
+  /* height: 100%; */
+}
+
+#room-list-container {
+  display: flex;
+  overflow: hidden;
+  background: black;
+  /* height: 100vh; */
+}
+
+.room-list {
+  /* background: rgb(64, 64, 64); */
+  /* padding: 2px; */
+  overflow: hidden;
+}
+
+.room-list-items {
+  /* display: grid; */
+  /* grid-template-columns: 1fr 1fr 1fr; */
+  display: flex;
+  flex-wrap: wrap;
 }
 
 .room-list-item {
   display: flex;
   flex-direction: column;
-  background: black;
-  /* background: rgb(80,80,80); */
+  align-items: center;
+  justify-content: center;
+  box-sizing: content-box;
+  height: 100%;
+  /* padding: 4px; */
+  margin: 1px;
+  border-radius: 4px;
+  /* background: rgba(255, 255, 255, 0.2); */
+  background: rgb(32, 32, 32);
+  overflow: hidden;
+
+}
+
+.room-list-item:hover {
+  filter: brightness(80%);
 }
 
 .room-list-item-image {
-  white-space: nowrap;
-  overflow: hidden;
+  pointer-events: none;
 }
 
-.room-list-item-text {
+.room-list-item-image>canvas {
+  display: block;
+  pointer-events: none;
+}
+
+/* .room-list-item-image:hover {
+} */
+
+.room-list-item-title {
   font-size: 10px;
   padding: 2px;
   color: lightgray;
+  pointer-events: none;
 }
 
 #room-detail-container {
-  display: flex;
-  flex-direction: column;
-  /* width: calc(100vw - 256px); */
-  width: 100%;
-  height: 100vh;
-  background: lightgray;
+  /* display: flex; */
+  /* height: 50vh; */
+  /* height: 90vh; */
+  /* background: rgb(240, 240, 240); */
+  /* background: gray; */
+  /* width: 100vw; */
+  /* border: 1px solid green; */
+  /* box-sizing: border-box; */
+  background: rgb(240, 240, 240);
+  overflow: hidden;
 }
 
 #room-detail {
   display: flex;
   flex-direction: column;
-  /* flex: auto; */
   width: 100%;
-  /* height: 100vh; */
   padding: 16px;
   box-sizing: border-box;
-  /* background: rgb(80,80,80); */
+  /* overflow: hidden; */
 }
 
-#room-image {
-  /* width: 100%; */
-  width: 360px;
-  min-width: 360px;
+#room-properties {
+  display: flex;
+}
+
+.room-title {
+  font-size: 2rem;
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+.scroll-image {
+  display: flex;
+  width: 100%;
   overflow: hidden;
 }
 
+.scroll-image>img {
+  pointer-events: none;
+}
+
 #room-objects {
+  /* display: grid; */
+  /* grid-template-columns: repeat(auto-fit, minmax(max-content, 1fr)); */
+  /* grid-auto-flow: row dense; */
+  /* justify-content: start; */
+  /* grid-gap: 2px; */
+  /* width: 600px; */
+
   display: flex;
-  flex-wrap: wrap;
+  /* grid-template-columns: repeat(auto-fit, 1fr); */
+  /* grid-gap: 1px; */
+  /* width: 100%; */
+  overflow: auto;
+  /* flex-wrap: wrap; */
+  border: 1px solid lightgray;
   font-size: 11px;
 }
 
 .room-object {
-  border: 1px solid red;
-  margin: 2px;
-}
-
-.property {
   display: flex;
-  font-size: 13px;
+  flex-direction: column;
+  /* border: 1px solid rgba(0, 0, 0, 0); */
+  /* margin-bottom: 4px; */
+  padding: 2px;
+  background: rgba(255, 255, 255, 0.2);
 }
 
-.value {
-  white-space: nowrap;
-  color: black;
-  /* color: rgb(224, 224, 224); */
-  /* background: lightgray; */
+.room-object:hover {
+  /* border: 1px solid white; */
+  /* filter: brightness(100%); */
+  /* background: white; */
+  filter: brightness(80%);
 }
 
-.label {
-  margin-right: 4px;
+.room-object.selected {
+  background: rgb(255, 255, 180);
+}
+
+.room-object-title {
+  padding: 3px;
   white-space: nowrap;
-  /* color: rgba(224, 224, 224, 0.65); */
-  color: rgba(0, 0, 0, 0.65);
+  /* background: rgba(0, 0, 0, 0.1); */
+}
+
+.room-object-image {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  min-height: 32px;
+  height: 100%;
+  /* display: block; */
+  /* max-width: auto; */
+  /* padding: 4px; */
+}
+
+.room-object-image img {
+  display: block;
+  pointer-events: none;
+  /* object-fit: cover; */
+  /* width: 100%; */
+  /* height: 100%; */
 }

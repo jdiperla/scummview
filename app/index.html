@@ -6,24 +6,19 @@
     <link rel="stylesheet" type="text/css" href="./css/default.css">
   </head>
   <body>
-      <div id="drop">Drop your game folder onto this window</div>
-      <div id="content">
-        <div id="room-list"></div>
-        <div id="room-detail-container">
-          <div id="room-detail">
-            <div class="property" style="font-size:1.5em"><div id="room-id" class="value"></div></div>
-            <div class="property"><div class="label">Description</div><div id="room-desc" class="value"></div></div>
-            <div class="property"><div class="label">Dimensions</div><div id="room-dimensions" class="value"></div></div>
-            <div class="property"><div class="label">Objects</div><div id="room-num-objects" class="value"></div></div>
-            <div style="height: 12px"></div>
-            <div id="room-image-container">
-              <div id="room-image"></div>
-              <div><button width="90">Save Image...</button></div>
-            </div>
-            <div id="room-objects"></div>
-          </div>
-        </div>
+    <div id="drop">Drop your game folder onto this window</div>
+    <div id="main">
+      <div id="tabs-container">
+        <div class="tab">RM</div>
+        <div class="tab">CH</div>
       </div>
+      <div id="content">
+        <div id="room-list-container"></div>
+        <div id="room-detail-container"></div>
+      </div>
+      <!-- <div>asd</div> -->
+      <!-- <div id="character-map-container"></div> -->
+    </div>
   </body>
   <script>
     require('./js')
