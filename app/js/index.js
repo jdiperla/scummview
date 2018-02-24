@@ -165,7 +165,7 @@ function showRoomDetail(id) {
   let objects = [];
   for (var i = 0; i < room.objects.length; i++) {
     let ob = room.objects[i];
-    let image = Tools.createImageFromBuffer(game.getRoomObjectBitmap(id, ob.number), ob.width, ob.height);
+    let image = Tools.createCanvasFromBuffer(game.getRoomObjectBitmap(id, ob.number), ob.width, ob.height);
     // bitmaps.push(image);
     objects.push({
       number: ob.number,
@@ -185,12 +185,14 @@ function showRoomDetail(id) {
     name: room.name,
     width: room.width,
     height: room.height,
-    image: Tools.createImageFromBuffer(game.getRoomBitmap(id), room.width, room.height),
+    image: Tools.createCanvasFromBuffer(game.getRoomBitmap(id), room.width, room.height),
     objects: objects
   }
 
-  let roomDetail = new RoomDetail(model);
-  el.appendChild(roomDetail.render());
+  let roomDetail = new RoomDetail({ model: model });
+  el.appendChild(roomDetail.dom());
+
+  roomDetail.update();
 }
 
 function createElements() {

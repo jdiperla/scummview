@@ -1,54 +1,53 @@
-const {EventEmitter} = require('events');
+const html = require('./html');
+const Component = require('./component');
 
-const html = require('../html');
-
-class ScrollImage extends EventEmitter {
-  constructor(model) {
-    super();
-    this.model = model;
+class ScrollImage extends Component {
+  constructor(params={}) {
+    super(params);
     this.model.objects = [];
+    this.render();
   }
 
   render() {
     let canvas = document.createElement('canvas');
+    canvas.id = 'graphic';
     canvas.width = this.model.width;
     canvas.height = this.model.height;
-    let ctx = canvas.getContext('2d');
 
-    if (this.model.image) {
-      if (this.model.image.completed) {
-        ctx.drawImage(this.model.image, 0, 0);
-      } else {
-        this.model.image.onload = () => ctx.drawImage(this.model.image, 0, 0);
-      }
-    } else {
-      this.model.image = document.createElement('img');
-      this.model.image.width = this.model.width;
-      this.model.image.height = this.model.height;
-    }
-
-    // canvas.style.opacity = 0;
-    // canvas.style.transition = 1;
+    // canvas.width = this.model.width;
+    // canvas.height = this.model.height;
+    // let ctx = canvas.getContext('2d');
+    //
+    // if (this.model.image) {
+    //   if (this.model.image.completed) {
+    //     ctx.drawImage(this.model.image, 0, 0);
+    //   } else {
+    //     this.model.image.onload = () => ctx.drawImage(this.model.image, 0, 0);
+    //   }
+    // } else {
+    //   this.model.image = document.createElement('img');
+    //   this.model.image.width = this.model.width;
+    //   this.model.image.height = this.model.height;
+    // }
 
     let component = html.div()
       .attribute('class', 'scroll-image')
       .append(canvas)
       ;
 
-    // component.dom().style.opacity = 1;
-
     this.el = component.dom();
 
     this.el.addEventListener('mousedown', this);
     this.el.addEventListener('wheel', this);
 
-    return this.el;
+    this.updateElements();
   }
 
   renderImage() {
     let canvas = this.el.firstChild;
     let ctx = canvas.getContext('2d');
     ctx.drawImage(this.model.image, 0, 0);
+
     for (var i = 0; i < this.model.objects.length; i++) {
       let o = this.model.objects[i];
       if (o.image)
@@ -69,6 +68,37 @@ class ScrollImage extends EventEmitter {
       }
     }
   }
+
+  updateElements() {
+    this.renderImage();
+  }
+
+  update(props={}) {
+    // console.log('scrollImage.update');
+    super.update(props);
+    this.updateElements();
+
+    // let canvas = this.el.querySelector('#graphic');
+    //
+    // canvas.width = this.model.width;
+    // canvas.height = this.model.height;
+    //
+    // let ctx = canvas.getContext('2d');
+    //
+    // if (this.model.image) {
+    //   ctx.drawImage(this.model.image, 0, 0);
+    //   // if (this.model.image.completed) {
+    //   //   ctx.drawImage(this.model.image, 0, 0);
+    //   // } else {
+    //   //   this.model.image.onload = () => ctx.drawImage(this.model.image, 0, 0);
+    //   // }
+    // } else {
+    //   // this.model.image = document.createElement('img');
+    //   // this.model.image.width = this.model.width;
+    //   // this.model.image.height = this.model.height;
+    // }
+  }
+
 
   showObject(ob) {
     this.tempObject = ob;

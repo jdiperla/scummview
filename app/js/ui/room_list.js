@@ -1,6 +1,6 @@
 const {EventEmitter} = require('events');
 
-const html = require('../html');
+const html = require('./html');
 
 let thumbWidth = 128;
 let thumbHeight = 80;
@@ -56,7 +56,7 @@ class RoomList extends EventEmitter {
           .class('room-list-item-image')
           .append(item.image)
       )
-      .append(html.div().class('room-list-item-title').append(html.text(item.description)))
+      // .append(html.div().class('room-list-item-title').append(html.text(item.description)))
       .on('click', (event) => {
         let id = event.target.dataset.id;
         if (!this.scrolled) {

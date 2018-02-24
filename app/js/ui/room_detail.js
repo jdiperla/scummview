@@ -1,26 +1,20 @@
-const Graphics = require('../graphics');
-const html = require('../html');
-const Tools = require('../tools');
+// const Graphics = require('../graphics');
+// const Tools = require('../tools');
+const html = require('./html');
+
 const ScrollImage = require('./scroll_image');
+const Scroller = require('./scroller');
+const Component = require('./component');
 
-class RoomDetail {
-  constructor(model) {
-    this.model = model;
-  }
-
-  renderImage() {
-    let model = {
-      image: this.model.image,
-      width: this.model.width,
-      height: this.model.height,
-    };
-    let scrollImage = new ScrollImage(model);
-    this.scrollImage = scrollImage;
-    return scrollImage.render();
+class RoomDetail extends Component {
+  constructor(params={}) {
+    super(params);
+    this.render();
   }
 
   renderObjects() {
-    let component = html.div().attribute('id', 'room-objects');
+    let component = html.div().attribute('id', 'objects').class('room-objects');
+
     for (var i = 0; i < this.model.objects.length; i++) {
       let ob = this.model.objects[i];
       let item = html.div()
@@ -56,25 +50,51 @@ class RoomDetail {
           this.toggleObject(ob);
         })
       ;
-      // let el = component.dom();
-      // component.on('mousemove', (event) => {
-      //   let x = event.pageX;
-      //   let y = event.pageY;
-      //   let rect = el.getBoundingClientRect();
-      //   if (x > rect.left && x < rect.left + 32 && y > rect.top && y < rect.bottom) {
-      //     console.log('<<');
-      //     setInterval();
-      //   } else if (x < rect.right && x > rect.right - 32 && y > rect.top && y < rect.bottom) {
-      //     console.log('>>');
-      //   } else {}
-      //   // console.log(event.offsetX);
-      //   // if (el.clientX)
-      //   // el.scrollLeft += 10;
-      //   // console.log('mouseover', event.clientX);
-      // });
       component.append(item);
     }
     return component.dom();
+  }
+
+  render() {
+    let component = html.div()
+      .attribute('id', 'room-detail')
+      .append(html.div().attribute('id', 'title').attribute('class', 'room-title'))
+      .append(html.div().attribute('id', 'dimensions'))
+    ;
+
+    component.append(html.div().style('height', '16px'));
+
+    this.scrollImage = new ScrollImage({ model: { image: this.model.image, width: this.model.width, height: this.model.height }});
+    component.append(this.scrollImage.dom());
+
+    if (this.model.objects.length) {
+      component.append(html.div().style('height', '16px'));
+      component.append(this.renderObjects());
+
+      let objectsEl = component.dom().querySelector('#objects');
+      this.scroller = new Scroller({ model: { component: objectsEl }});
+      component.append(this.scroller.dom());
+
+      // objectsEl.scrollLeft = 15;
+    }
+
+    this.el = component.dom();
+
+    this.updateElements();
+  }
+
+  updateElements() {
+    this.el.querySelector('#title').innerHTML = this.model.id + ' ' + (this.model.name || '');
+    this.el.querySelector('#dimensions').innerHTML = this.model.width + 'x' + this.model.height;
+    if (this.scroller) {
+      this.scroller.update();
+    }
+    // this.scrollImage.update({ image: this.model.image, width: this.model.width, height: this.model.height });
+  }
+
+  update(props={}) {
+    super.update(props);
+    this.updateElements();
   }
 
   toggleObject(ob) {
@@ -86,47 +106,6 @@ class RoomDetail {
     }
   }
 
-  render() {
-    let component = html.div()
-      .attribute('id', 'room-detail')
-      .append(html.div().attribute('class', 'room-title').append(html.text(this.model.id + ' ' + (this.model.name || '') )))
-      .append(html.div().append(html.text(this.model.width + 'x' + this.model.height)))
-      .append(
-        html.div()
-          .attribute('id', 'room-properties')
-          .append(
-            html.div()
-              .attribute('class', 'property-group')
-              // .append(html.div().attribute('class', 'property-label').append(html.text('Description')))
-              // .append(html.div().attribute('class', 'property-value').append(html.text(this.model.description)))
-              // .append(html.div().attribute('class', 'property-label').append(html.text('Dimensions')))
-              // .append(html.div().attribute('class', 'property-value').append(html.text(this.model.width + 'x' + this.model.height)))
-              // .append(html.div().attribute('class', 'property-label').append(html.text('Objects')))
-              // .append(html.div().attribute('class', 'property-value').append(html.text(this.model.objects.length)))
-          )
-          .append(html.div().style('flex', 'auto'))
-      )
-      // .append(html.div().attribute('id', 'room-image').append(this.model.image))
-      // .append(this.renderObjects())
-    ;
-
-    component.append(html.div().style('height', '16px'));
-    component.append(this.renderImage());
-    if (this.model.objects.length) {
-      component.append(html.div().style('height', '16px'));
-      component.append(this.renderObjects());
-    }
-
-    return component.dom();
-  }
-
-  hide() {
-    this.el.style.visibility = 'hidden';
-  }
-
-  show() {
-    this.el.style.removeProperty('visibility');
-  }
 
 }
 
