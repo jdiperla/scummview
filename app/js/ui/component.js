@@ -4,9 +4,12 @@ const { EventEmitter } = require('events');
 class Component extends EventEmitter {
   constructor(params={}) {
     super();
+
     this.model = {};
+
     this.el = params.el || document.createElement('div');
-    // this.update(params.props);
+    params.id ? this.el.id = params.id : null;
+
     for (let name in params.model) {
       this.model[name] = params.model[name];
     }
@@ -22,6 +25,15 @@ class Component extends EventEmitter {
 
   dom() {
     return this.el;
+  }
+
+  hide() {
+    this.el.style.setProperty('visibility', 'hidden');
+    // console.log(this.el, 'hidden');
+  }
+
+  show() {
+    this.el.style.removeProperty('visibility');
   }
 
 }

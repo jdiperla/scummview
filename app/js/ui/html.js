@@ -13,8 +13,13 @@ class Html {
     return this;
   }
 
-  on(e, callback) {
-    this.el.addEventListener(e, callback);
+  id(value) {
+    this.el.id = value;
+    return this;
+  }
+
+  on(eventType, callback) {
+    this.el.addEventListener(eventType, callback);
     return this;
   }
 
@@ -24,9 +29,12 @@ class Html {
   }
 
   attribute(name, value) {
-    // this.el[attr] = value;
-    // this.el.attributes[attr] = value;
     this.el.setAttribute(name, value);
+    return this;
+  }
+
+  property(name, value) {
+    this.el[name] = value;
     return this;
   }
 
@@ -46,10 +54,11 @@ class Html {
 
   static div(style) {
     let el = document.createElement('div');
-    if (style instanceof Object) {
-      for (let property in style) el.style[property] = style[property];
-    }
-    // if (child) el.appendChild(child);
+    return new Html(el);
+  }
+
+  static element(type) {
+    let el = document.createElement(type);
     return new Html(el);
   }
 

@@ -1,10 +1,9 @@
-// const Graphics = require('../graphics');
-// const Tools = require('../tools');
 const html = require('./html');
-
-const ScrollImage = require('./scroll_image');
-const Scroller = require('./scroller');
 const Component = require('./component');
+const RoomImage = require('./room_image');
+const Scroller = require('./scroller');
+const RoomObjects = require('./room_objects');
+
 
 class RoomDetail extends Component {
   constructor(params={}) {
@@ -12,93 +11,75 @@ class RoomDetail extends Component {
     this.render();
   }
 
-  renderObjects() {
-    let component = html.div().attribute('id', 'objects').class('room-objects');
-
-    for (var i = 0; i < this.model.objects.length; i++) {
-      let ob = this.model.objects[i];
-      let item = html.div()
-        .attribute('class', 'room-object')
-        .attribute('id', 'ob' + ob.number)
-        // .style('width', 'auto')
-        // .style('min-width', ob.width + 'px')
-        // .style('max-width', 'auto')
-        .append(
-          html.div()
-            .attribute('class', 'room-object-title')
-            // .attribute('class', 'property-group')
-            // .append(html.div().attribute('class', 'property-label').append(html.text('Number')))
-            // .append(html.div().attribute('class', 'property-value').append(html.text(ob.number)))
-            // .append(html.div().attribute('class', 'property-label').append(html.text('Name')))
-            .append(html.div().append(html.text(ob.name ? ob.name : ob.number)))
-            // .append(html.div().attribute('class', 'property-label').append(html.text('Location')))
-            // .append(html.div().attribute('class', 'property-value').append(html.text(ob.x_pos + ', ' + ob.y_pos)))
-            // .append(html.div().attribute('class', 'property-label').append(html.text('Dimensions')))
-            // .append(html.div().attribute('class', 'property-value').append(html.text(ob.width + 'x' + ob.height)))
-            // .append(html.div().attribute('class', 'property-value').append(html.text(ob.parentstate)))
-            // .append(html.div().attribute('class', 'property-value').append(html.text(ob.parent)))
-            // .append(html.div().attribute('class', 'property-value').append(html.text(ob.bytes)))
-        )
-        .append(html.div().attribute('class', 'room-object-image').append(ob.image))
-        .on('pointerenter', (e) => {
-          this.scrollImage.showObject(ob);
-        })
-        .on('pointerleave', (e) => {
-          this.scrollImage.showObject(null);
-        })
-        .on('click', (e) => {
-          this.toggleObject(ob);
-        })
-      ;
-      component.append(item);
-    }
-    return component.dom();
-  }
-
   render() {
+    let container = html.div().class('room-detail-container');
+
     let component = html.div()
-      .attribute('id', 'room-detail')
-      .append(html.div().attribute('id', 'title').attribute('class', 'room-title'))
-      .append(html.div().attribute('id', 'dimensions'))
+      .attribute('class', 'room-detail')
     ;
 
-    component.append(html.div().style('height', '16px'));
+    container.append(component);
 
-    this.scrollImage = new ScrollImage({ model: { image: this.model.image, width: this.model.width, height: this.model.height }});
-    component.append(this.scrollImage.dom());
+    component.append(html.div().attribute('id', 'title').attribute('class', 'room-title'))
+    component.append(html.div().attribute('id', 'dimensions'))
 
-    if (this.model.objects.length) {
-      component.append(html.div().style('height', '16px'));
-      component.append(this.renderObjects());
+    component.append(html.div().style('height', '1rem'));
 
-      let objectsEl = component.dom().querySelector('#objects');
-      this.scroller = new Scroller({ model: { component: objectsEl }});
-      component.append(this.scroller.dom());
+    this.roomImage = new RoomImage();
+    component.append(this.roomImage.dom());
 
-      // objectsEl.scrollLeft = 15;
-    }
+    component.append(html.div().style('height', '1rem'));
 
-    this.el = component.dom();
+    this.roomObjects = new RoomObjects();
+    this.roomObjects.on('enter', (ob) => {
+      this.roomImage.showObject(ob);
+    });
+    this.roomObjects.on('leave', (ob) => {
+      this.roomImage.showObject(null);
+    });
+    this.roomObjects.on('toggle', (ob) => {
+      this.toggleObject(ob);
+    });
+    component.append(this.roomObjects.dom());
 
+    this.el = container.dom();
     this.updateElements();
   }
 
   updateElements() {
-    this.el.querySelector('#title').innerHTML = this.model.id + ' ' + (this.model.name || '');
+    let title = (this.model.id || '') + ' ' + (this.model.name || '');
+    this.el.querySelector('#title').innerHTML = title;
     this.el.querySelector('#dimensions').innerHTML = this.model.width + 'x' + this.model.height;
-    if (this.scroller) {
-      this.scroller.update();
+
+    this.roomImage.update({ image: this.model.image, width: this.model.width, height: this.model.height });
+    this.roomObjects.update({ objects: this.model.objects });
+
+    if (!this.model.image) {
+      this.roomImage.hide();
+    } else {
+      this.roomImage.show();
     }
-    // this.scrollImage.update({ image: this.model.image, width: this.model.width, height: this.model.height });
   }
 
-  update(props={}) {
-    super.update(props);
+  update(model={}) {
+    super.update(model);
+    this.updateElements();
+  }
+
+  reset() {
+    this.model = {
+      id: null,
+      name: null,
+      image: null,
+      width: null,
+      height: null
+    };
+    this.roomImage.reset();
     this.updateElements();
   }
 
   toggleObject(ob) {
-    let state = this.scrollImage.toggleObject(ob);
+    let state = this.roomImage.toggleObject(ob);
     let el = document.getElementById('ob' + ob.number);
     if (el) {
       // el.style.background = state ? 'dodgerblue' : 'initial';

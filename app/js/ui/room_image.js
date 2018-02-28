@@ -1,7 +1,8 @@
 const html = require('./html');
 const Component = require('./component');
+const Scroller = require('./scroller');
 
-class ScrollImage extends Component {
+class RoomImage extends Component {
   constructor(params={}) {
     super(params);
     this.model.objects = [];
@@ -9,33 +10,24 @@ class ScrollImage extends Component {
   }
 
   render() {
+    let container = html.div().class('room-image-container');
+
     let canvas = document.createElement('canvas');
     canvas.id = 'graphic';
     canvas.width = this.model.width;
     canvas.height = this.model.height;
 
-    // canvas.width = this.model.width;
-    // canvas.height = this.model.height;
-    // let ctx = canvas.getContext('2d');
-    //
-    // if (this.model.image) {
-    //   if (this.model.image.completed) {
-    //     ctx.drawImage(this.model.image, 0, 0);
-    //   } else {
-    //     this.model.image.onload = () => ctx.drawImage(this.model.image, 0, 0);
-    //   }
-    // } else {
-    //   this.model.image = document.createElement('img');
-    //   this.model.image.width = this.model.width;
-    //   this.model.image.height = this.model.height;
-    // }
-
     let component = html.div()
-      .attribute('class', 'scroll-image')
+      .attribute('class', 'room-image')
       .append(canvas)
       ;
 
-    this.el = component.dom();
+    container.dom().append(component.dom());
+
+    this.scroller = new Scroller({ component: component.dom() });
+    container.dom().append(this.scroller.dom());
+
+    this.el = container.dom();
 
     this.el.addEventListener('mousedown', this);
     this.el.addEventListener('wheel', this);
@@ -44,15 +36,21 @@ class ScrollImage extends Component {
   }
 
   renderImage() {
-    let canvas = this.el.firstChild;
+    let canvas = this.el.querySelector('.room-image').firstChild;
+    canvas.width = this.model.width;
+    canvas.height = this.model.height;
+
     let ctx = canvas.getContext('2d');
-    ctx.drawImage(this.model.image, 0, 0);
+    if (this.model.image) {
+      ctx.drawImage(this.model.image, 0, 0);
+    }
 
     for (var i = 0; i < this.model.objects.length; i++) {
       let o = this.model.objects[i];
       if (o.image)
         ctx.drawImage(o.image, o.x_pos, o.y_pos);
     }
+
     if (this.tempObject) {
       let ob = this.tempObject;
       if (ob.image) {
@@ -71,11 +69,19 @@ class ScrollImage extends Component {
 
   updateElements() {
     this.renderImage();
+    this.scroller.update();
   }
 
-  update(props={}) {
-    // console.log('scrollImage.update');
-    super.update(props);
+  reset() {
+    this.model.objects = [];
+    this.tempObject = null;
+    this.scroller.reset();
+    this.renderImage();
+  }
+
+  update(model={}) {
+    // console.log('scrollImage.update', model);
+    super.update(model);
     this.updateElements();
 
     // let canvas = this.el.querySelector('#graphic');
@@ -222,4 +228,4 @@ class ScrollImage extends Component {
   }
 }
 
-module.exports = ScrollImage;
+module.exports = RoomImage;

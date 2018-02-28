@@ -18,7 +18,10 @@ class Scumm4 extends Game {
 
   detect() {
     this.parseIndex();
-    this.parseCharset();
+    this.parseCharset(1);
+    this.parseCharset(2);
+    this.parseCharset(3);
+    this.parseCharset(4);
 
     let room = this.getRoom(1);
 
@@ -40,45 +43,6 @@ class Scumm4 extends Game {
 
   makeIndexFilename(num) {
     return num.toString().padStart(3, '0') + '.lfl';
-  }
-
-  getCharsetBitmap(num, setnum=0) {
-    let charset = this.charsets[setnum];
-    let ch = this.getCharsetItem(num, setnum);
-
-    if (!ch) return;
-    // console.log('getCharsetBitmap', num, setnum);
-
-    if (charset.bitsPerPixel !== 1) return;
-
-    let w = ch.width;
-    let h = ch.height;
-
-    let pixels = new Uint8Array(ch.width * ch.height * 4);
-    for (var i = 0; i < ch.width*ch.height; i++) {
-      pixels[i*4] = 255;
-      pixels[i*4 + 3] = 255;
-    }
-
-    for (var i = 0, x = 0, y = 0; i < ch.data.length * 8; i++) {
-      let byte = ch.data[(i / 8) >> 0];
-      let bit = Math.pow(2, 7-(i % 8));
-      let value = (byte & bit ? 255 : 0);
-
-      let index = (y * ch.width + x) * 4;
-      pixels[index + 0] = value;
-      pixels[index + 1] = value;
-      pixels[index + 2] = value;
-      pixels[index + 3] = 255;
-
-      x++;
-      if (x == ch.width) {
-        y++;
-        x = 0;
-      }
-    }
-
-    return pixels;
   }
 
   getCharsetItem(num, setnum=0) {
@@ -107,13 +71,11 @@ class Scumm4 extends Game {
     let numChars = stream.getUint16LE(23);
 
     // console.log('charset'+num, bitsPerPixel, height, numChars);
+    // console.log(bitsPerPixel, fontHeight, numChars);
 
     let offset = 4 + 17 + 4;
 
     let characters = [];
-
-    // for (var i = 0; i < numChars; i++) {
-    // let _a = numChars;
 
     for (var i = 0; i < numChars; i++) {
       let offs = stream.getUint32LE(offset + i * 4);
@@ -124,7 +86,8 @@ class Scumm4 extends Game {
         ch.height = stream.getUint8(offs + 1);
         ch.x = stream.getUint8(offs + 2);
         ch.y = stream.getUint8(offs + 3);
-        let sz = (ch.width * ch.height) / (bitsPerPixel * 8);
+        let sz = ((ch.width * ch.height) / 8) * bitsPerPixel;
+        if (sz % 2) sz++;
         ch.data = stream.getBytes(offs + 4, sz);
         characters[i] = ch;
         // console.log(i, sz, ch);
