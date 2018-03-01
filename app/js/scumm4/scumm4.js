@@ -101,7 +101,8 @@ class Scumm4 extends Game {
     for (var i = 0; i < characters.length; i++)
       charset.addGlyph(characters[i]);
 
-    this.charsets[num-1] = charset;
+    // this.charsets[num-1] = charset;
+    this.charsets.push(charset);
 
     // console.log(this.charsets[num-1]);
   }

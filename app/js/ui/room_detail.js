@@ -20,15 +20,18 @@ class RoomDetail extends Component {
 
     container.append(component);
 
-    component.append(html.div().attribute('id', 'title').attribute('class', 'room-title'))
-    component.append(html.div().attribute('id', 'dimensions'))
+    // component.append(html.div().attribute('id', 'title').attribute('class', 'room-title'))
+    // component.append(html.div().attribute('id', 'dimensions'))
 
-    component.append(html.div().style('height', '1rem'));
+    // component.append(html.div().style('height', '1rem'));
 
     this.roomImage = new RoomImage();
     component.append(this.roomImage.dom());
 
     component.append(html.div().style('height', '1rem'));
+
+    // if (this.model.objects)
+      // component.append(html.div().class('heading3').append(html.text('Objects')));
 
     this.roomObjects = new RoomObjects();
     this.roomObjects.on('enter', (ob) => {
@@ -48,8 +51,8 @@ class RoomDetail extends Component {
 
   updateElements() {
     let title = (this.model.id || '') + ' ' + (this.model.name || '');
-    this.el.querySelector('#title').innerHTML = title;
-    this.el.querySelector('#dimensions').innerHTML = this.model.width + 'x' + this.model.height;
+    // this.el.querySelector('#title').innerHTML = title;
+    // this.el.querySelector('#dimensions').innerHTML = this.model.width + 'x' + this.model.height;
 
     this.roomImage.update({ image: this.model.image, width: this.model.width, height: this.model.height });
     this.roomObjects.update({ objects: this.model.objects });
@@ -76,6 +79,11 @@ class RoomDetail extends Component {
     };
     this.roomImage.reset();
     this.updateElements();
+  }
+
+  adjust() {
+    this.roomImage.adjust();
+    this.roomObjects.adjust();
   }
 
   toggleObject(ob) {

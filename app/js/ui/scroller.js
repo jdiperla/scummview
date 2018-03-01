@@ -5,7 +5,8 @@ class Scroller extends Component {
   constructor(params={}) {
     super(params);
     this.component = params.component;
-    this.orientation = params.orientation || 'horizontal';
+    this.orientation = params.orientation || 'vertical';
+    this.offset = 0;
     this.render();
   }
 
@@ -23,46 +24,57 @@ class Scroller extends Component {
   }
 
   updateElements() {
+    let page, total, canal;
+
     if (this.orientation == 'horizontal') {
-      let page = this.component.offsetWidth;
-      let total = this.component.scrollWidth;
-
-      if (page < total) {
-        this.grabEl.style.width = Math.round((page * (page / total))) + 'px';
-      } else {
-        this.grabEl.style.width = 0;
-        this.grabEl.style.left = 0;
-      }
-
-      if (this.grabEl.offsetLeft + this.grabEl.offsetWidth > this.el.offsetWidth) {
-        this.grabEl.style.left = (this.el.offsetWidth - this.grabEl.offsetWidth) + 'px';
-      } else if (this.grabEl.offsetLeft < 0) {
-        this.grabEl.style.left = 0;
-      }
-
-      let ratio = (this.grabEl.offsetLeft) / (this.el.offsetWidth - this.grabEl.offsetWidth);
-      this.component.scrollLeft = (this.component.scrollWidth - this.component.offsetWidth) * ratio;
-
+      page = this.component.offsetWidth;
+      total = this.component.scrollWidth;
+      canal = this.el.offsetWidth;
     } else {
-      let page = this.component.offsetHeight;
-      let total = this.component.scrollHeight;
-
-      if (page < total) {
-        this.grabEl.style.height = Math.round((page * (page / total))) + 'px';
-      } else {
-        this.grabEl.style.height = 0;
-        this.grabEl.style.top = 0;
-      }
-
-      if (this.grabEl.offsetTop + this.grabEl.offsetHeight > this.el.offsetHeight) {
-        this.grabEl.style.top = (this.el.offsetHeight - this.grabEl.offsetHeight) + 'px';
-      } else if (this.grabEl.offsetTop < 0) {
-        this.grabEl.style.top = 0;
-      }
-
-      let ratio = (this.grabEl.offsetTop) / (this.el.offsetHeight - this.grabEl.offsetHeight);
-      this.component.scrollTop = (this.component.scrollHeight - this.component.offsetHeight) * ratio;
+      page = this.component.offsetHeight;
+      total = this.component.scrollHeight;
+      canal = this.el.offsetHeight;
     }
+
+    let size = 0;
+
+    if (page < total) {
+      // this.grabEl.style.width = Math.round((page * (page / total))) + 'px';
+      size = Math.round(page * (page / total));
+    } else {
+      // this.grabEl.style.width = 0;
+      // this.grabEl.style.left = 0;
+      size = 0;
+      this.offset = 0;
+    }
+
+    // if (this.grabEl.offsetLeft + this.grabEl.offsetWidth > this.el.offsetWidth) {
+    //   this.grabEl.style.left = (this.el.offsetWidth - this.grabEl.offsetWidth) + 'px';
+    // } else if (this.grabEl.offsetLeft < 0) {
+    //   this.grabEl.style.left = 0;
+    // }
+    //
+    // let ratio = (this.grabEl.offsetLeft) / (this.el.offsetWidth - this.grabEl.offsetWidth);
+    // this.component.scrollLeft = (this.component.scrollWidth - this.component.offsetWidth) * ratio;
+
+    if (this.offset + size > canal) {
+      this.offset = canal - size;
+    } else if (this.offset < 0) {
+      this.offset = 0;
+    }
+
+    let ratio = this.offset / (canal - size);
+
+    if (this.orientation == 'horizontal') {
+      this.component.scrollLeft = (total - page) * ratio;
+      this.grabEl.style.width = size + 'px';
+      this.grabEl.style.left = this.offset + 'px';
+    } else {
+      this.component.scrollTop = (total - page) * ratio;
+      this.grabEl.style.height = size + 'px';
+      this.grabEl.style.top = this.offset + 'px';
+    }
+
   }
 
   update(props={}) {
@@ -71,23 +83,15 @@ class Scroller extends Component {
   }
 
   reset() {
-    if (this.orientation == 'horizontal') {
-      this.grabEl.style.left = 0;
-      this.component.scrollLeft = 0;
-    } else {
-      this.grabEl.style.top = 0;
-      this.component.scrollTop = 0;
-    }
+    this.offset = 0;
+  }
+
+  adjust() {
+    this.updateElements();
   }
 
   scrollBy(amt) {
-    if (this.orientation == 'horizontal') {
-      if ((amt < 0 && this.grabEl.offsetLeft > 0) || (amt > 0 && this.grabEl.offsetLeft + this.grabEl.offsetWidth < this.el.offsetWidth))
-        this.grabEl.style.left = (this.grabEl.offsetLeft + amt) + 'px';
-    } else {
-      // if ((amt < 0 && this.grabEl.offsetTop > 0) || (amt > 0 && this.grabEl.offsetTop + this.grabEl.offsetHeight < this.el.offsetHeight))
-        this.grabEl.style.top = (this.grabEl.offsetTop + amt) + 'px';
-    }
+    this.offset += amt;
     this.updateElements();
   }
 
@@ -127,10 +131,7 @@ class Scroller extends Component {
     }
     if (this.down) {
       if (this.drag) {
-        if (this.orientation == 'horizontal')
-          this.scrollBy(event.movementX);
-        else
-          this.scrollBy(event.movementY);
+        this.scrollBy(this.orientation == 'horizontal' ? event.movementX : event.movementY);
         this.scrolled = true;
       } else {
         // let dx = event.clientX - this.mouseDownX;
@@ -147,11 +148,13 @@ class Scroller extends Component {
   }
 
   onWheel(event) {
-    this.scrollBy(event.deltaY*0.1);
+    let amt = this.orientation == 'horizontal' ? event.deltaX : event.deltaY;
+    this.scrollBy(amt);
   }
 
   onResize(event) {
-    this.updateElements();
+    // this.updateElements();
+    this.adjust();
   }
 
   onBlur(event) {

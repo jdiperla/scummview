@@ -2,6 +2,27 @@ body, html {
   margin: 0;
   padding: 0;
   overflow: hidden;
+
+  user-select: none;
+  cursor: default;
+
+  font-family: sans-serif;
+}
+
+.heading1 {
+
+}
+
+.heading2 {
+  font-size: 15px;
+  font-weight: bold;
+  margin: 12px 0 8px 0;
+}
+
+.heading3 {
+  font-size: 16px;
+  margin-top: 8px;
+  margin-bottom: 4px;
 }
 
 .scroller {
@@ -57,7 +78,9 @@ body, html {
   justify-content: center;
   height: 4rem;
   font-size: .8rem;
-  background: rgb(224, 224, 224);
+  box-sizing: border-box;
+  border-bottom: 1px solid lightgray;
+  background: rgb(240, 240, 240);
 }
 
 .tab:hover {
@@ -76,7 +99,10 @@ body, html {
 .tab-group {
   display: flex;
   flex-direction: column;
-  background: rgb(224, 224, 224);
+  box-sizing: border-box;
+  /* border-right: 1px solid gray; */
+  background: rgb(240, 240, 240);
+  /* background: lightgray; */
 }
 
 .pane {
@@ -86,31 +112,41 @@ body, html {
 }
 
 .panel {
+  /* display: flex; */
+  /* border: 1px solid red; */
 }
 
 #app {
   display: flex;
   width: 100vw;
   height: 100vh;
-
-  /* background: green; */
-
-  user-select: none;
-  cursor: default;
-
-  font-family: sans-serif;
+  /* background: lightgray; */
+  /* background: rgb(224, 224, 224); */
+  background: rgb(240, 240, 240);
 }
 
 .character-map-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  height: 100%;
+  padding: 16px;
+  background: gray;
 }
 
 .character-map {
   display: grid;
   grid-template-columns: repeat(32, min-content);
   grid-gap: 2px;
-  height: min-content;
-  padding: 16px;
-  background: gray;
+
+  /* height: min-content; */
+  /* display: flex; */
+  /* flex-wrap: wrap; */
+  /* align-items: flex-start; */
+  /* justify-content: flex-start; */
+  /* padding: 16px; */
+  /* background: gray; */
 }
 
 .character-map-item {
@@ -130,7 +166,7 @@ body, html {
   display: grid;
   /* grid-template-columns: 320px calc(100vw - 320px - 64px); */
   grid-template-columns: calc(100vw - 64px);
-  grid-template-rows: 232px (100vh - 232px);
+  grid-template-rows: 232px calc(100vh - 232px);
 }
 
 .room-list-container {
@@ -140,7 +176,7 @@ body, html {
 
 .room-list {
   /* height: 100vh; */
-  width: calc(100vw - 64px);
+  /* width: calc(100vw - 64px); */
   /* height: 120px; */
 
   background: black;
@@ -199,10 +235,17 @@ body, html {
 }
 
 .room-detail-container {
+  /* display: flex; */
+  /* flex: auto; */
+  /* display: flex; */
+  /* height: 100%; */
+  background: rgb(160, 160, 160);
+  border-top: 1px solid gray;
 }
 
 .room-detail {
   padding: 16px;
+  /* background: green; */
 }
 
 .room-title {
@@ -212,10 +255,14 @@ body, html {
 }
 
 .room-image-container {
-  /* display: flex; */
-  /* flex-direction: column; */
   max-width: min-content;
-  border: 1px solid lightgray;
+  padding: 4px;
+  /* border: 1px solid lightgray; */
+  background: white;
+}
+
+.room-image-border {
+  /* overflow: hidden; */
 }
 
 .room-image {
@@ -229,7 +276,9 @@ body, html {
 
 .room-objects-container {
   max-width: min-content;
-  border: 1px solid lightgray;
+  padding: 4px;
+  /* border: 1px solid lightgray; */
+  background: white;
 }
 
 .room-objects {

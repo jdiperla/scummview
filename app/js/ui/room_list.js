@@ -22,7 +22,7 @@ class RoomList extends Component {
     this.itemsEl = items.dom();
     this.listEl = list.dom();
 
-    this.scroller = new Scroller({ component: this.listEl });
+    this.scroller = new Scroller({ component: this.listEl, orientation: 'horizontal' });
     this.el.appendChild(this.scroller.dom());
 
     // this.el.addEventListener('mousedown', this);
@@ -71,7 +71,11 @@ class RoomList extends Component {
 
   reset() {
     this.scroller.reset();
-    this.scroller.update();
+    // this.scroller.update();
+  }
+
+  adjust() {
+    this.scroller.adjust();
   }
 
   clear() {
@@ -80,7 +84,7 @@ class RoomList extends Component {
     // }
   }
 
-  setThumbnail(id, image) {
+  updateThumbnail(id, image) {
     let el = this.itemsEl.querySelector('#thumbnail' + id);
     el.removeChild(el.firstChild);
     el.appendChild(image);

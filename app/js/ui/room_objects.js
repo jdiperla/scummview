@@ -10,10 +10,13 @@ class RoomObjects extends Component {
 
   render() {
     let container = html.div().class('room-objects-container');
+
+    // container.append(html.div().class('heading3').append(html.text('Objects')));
+
     let objects = html.div().attribute('id', 'objects').class('room-objects');
     container.append(objects);
 
-    this.scroller = new Scroller({ component: objects.dom() });
+    this.scroller = new Scroller({ component: objects.dom(), orientation: 'horizontal' });
     container.dom().append(this.scroller.dom());
 
     this.el = container.dom();
@@ -53,6 +56,7 @@ class RoomObjects extends Component {
         ;
         objectsEl.appendChild(item.dom());
       }
+
       this.scroller.update();
       this.scroller.reset();
       this.show();
@@ -64,6 +68,10 @@ class RoomObjects extends Component {
   update(model={}) {
     super.update(model);
     this.updateElements();
+  }
+
+  adjust() {
+    this.scroller.adjust();
   }
 
 }

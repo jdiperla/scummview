@@ -17,14 +17,15 @@ class RoomImage extends Component {
     canvas.width = this.model.width;
     canvas.height = this.model.height;
 
-    let component = html.div()
-      .attribute('class', 'room-image')
-      .append(canvas)
-      ;
+    let component = html.div().class('room-image').append(canvas);
+    // let outer = html.div().class('room-image-border');
+    // outer.append(component);
 
     container.dom().append(component.dom());
+    // container.dom().append(outer.dom());
 
-    this.scroller = new Scroller({ component: component.dom() });
+    // this.scroller = new Scroller({ component: component.dom(), orientation: 'horizontal' });
+    this.scroller = new Scroller({ component: component.dom(), orientation: 'horizontal' });
     container.dom().append(this.scroller.dom());
 
     this.el = container.dom();
@@ -72,13 +73,6 @@ class RoomImage extends Component {
     this.scroller.update();
   }
 
-  reset() {
-    this.model.objects = [];
-    this.tempObject = null;
-    this.scroller.reset();
-    this.renderImage();
-  }
-
   update(model={}) {
     // console.log('scrollImage.update', model);
     super.update(model);
@@ -105,6 +99,16 @@ class RoomImage extends Component {
     // }
   }
 
+  reset() {
+    this.model.objects = [];
+    this.tempObject = null;
+    this.scroller.reset();
+    this.renderImage();
+  }
+
+  adjust() {
+    this.scroller.adjust();
+  }
 
   showObject(ob) {
     this.tempObject = ob;

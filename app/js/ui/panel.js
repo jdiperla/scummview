@@ -17,7 +17,12 @@ class Panel extends Component {
   }
 
   add(component) {
-    this.el.appendChild(component.dom());
+    if (component) {
+      this.el.appendChild(component.dom());
+      if (component.adjust) {
+        component.adjust();
+      }
+    }
   }
 
   clear() {

@@ -7,6 +7,7 @@ class Pane extends Component {
   constructor(params={}) {
     super(params);
     this.items = [];
+    this.index = -1;
     this.render();
   }
 
@@ -16,7 +17,6 @@ class Pane extends Component {
   render() {
     this.tabs = new TabGroup();
     this.tabs.on('hit', (index) => {
-      // console.log('hit', index);
       this.show(index);
     });
     this.panel = new Panel();
@@ -37,12 +37,20 @@ class Pane extends Component {
     }
   }
 
+  clear() {
+    this.panel.clear();
+    this.tabs.clear();
+    this.items = [];
+    this.index = -1;
+  }
+
   show(index) {
+    // console.log('show', index);
     if (index != this.index) {
       let item = this.items[index];
       this.panel.clear();
       this.panel.add(item);
-      // console.log(item);
+
       this.tabs.setActive(index);
       this.index = index;
     }

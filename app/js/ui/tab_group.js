@@ -6,6 +6,7 @@ class TabGroup extends Component {
   constructor(params={}) {
     super(params);
     this.tabs = [];
+    this.index = -1;
     this.render();
   }
 
@@ -29,7 +30,7 @@ class TabGroup extends Component {
 
   setActive(index) {
     if (index !== this.index) {
-      if (this.index !== undefined) {
+      if (this.index !== -1) {
         this.tabs[this.index].dom().classList.remove('active');
       }
       if (this.tabs[index]) {
@@ -37,6 +38,12 @@ class TabGroup extends Component {
       }
       this.index = index;
     }
+  }
+
+  clear() {
+    this.tabs = [];
+    this.index = -1;
+    while (this.el.firstChild) this.el.removeChild(this.el.firstChild);
   }
 }
 

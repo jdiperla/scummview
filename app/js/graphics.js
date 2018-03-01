@@ -38,7 +38,7 @@ class Graphics {
     let dst = new Uint8Array(buffer.length * 4);
     for (var i = 0; i < buffer.length; i++) {
       let c = buffer[i];
-      dst[i * 4] = EGA_PALETTE[c * 3];
+      dst[i * 4 + 0] = EGA_PALETTE[c * 3 + 0];
       dst[i * 4 + 1] = EGA_PALETTE[c * 3 + 1];
       dst[i * 4 + 2] = EGA_PALETTE[c * 3 + 2];
       dst[i * 4 + 3] = 255;
