@@ -74,6 +74,9 @@ class RoomObjects extends Component {
     this.scroller.adjust();
   }
 
+  reset() {
+    this.scroller.reset();
+  }
 }
 
 module.exports = RoomObjects;

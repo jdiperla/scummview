@@ -11,18 +11,19 @@ class RoomList extends Component {
   }
 
   render() {
-    let container = html.div().class('room-list-container');
+    this.el = html.div().class('room-list-container').dom();
+
     let list = html.div().class('room-list');
     let items = html.div().class('room-list-items');
 
     list.append(items);
-    container.append(list);
 
-    this.el = container.dom();
     this.itemsEl = items.dom();
     this.listEl = list.dom();
 
-    this.scroller = new Scroller({ component: this.listEl, orientation: 'horizontal' });
+    this.el.appendChild(list.dom());
+
+    this.scroller = new Scroller({ component: this.listEl });
     this.el.appendChild(this.scroller.dom());
 
     // this.el.addEventListener('mousedown', this);

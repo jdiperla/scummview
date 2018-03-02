@@ -58,7 +58,7 @@ class RoomImage extends Component {
         ctx.drawImage(ob.image, ob.x_pos, ob.y_pos);
       } else {
         ctx.save();
-        // ctx.globalCompositeOperation = 'exclusion';
+        ctx.globalCompositeOperation = 'difference';
         ctx.strokeStyle = 'white';
         ctx.beginPath();
         ctx.rect(ob.x_pos+0.5, ob.y_pos+0.5, ob.width-1, ob.height-1);

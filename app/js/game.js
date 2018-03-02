@@ -7,7 +7,7 @@ const Stream = require('./stream');
 class Game {
   constructor(detector) {
     if (detector) {
-      console.log('detector', detector.rootPath);
+      // console.log('detector', detector.rootPath);
       this.rootPath = detector.rootPath;
       this.roomNames = [];
       this.roomFileTable = [];

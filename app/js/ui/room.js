@@ -24,6 +24,7 @@ class Room extends Component {
   }
 
   show(model={}) {
+    this.detail.reset();
     this.detail.update(model);
   }
 

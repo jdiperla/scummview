@@ -39,23 +39,11 @@ class Scroller extends Component {
     let size = 0;
 
     if (page < total) {
-      // this.grabEl.style.width = Math.round((page * (page / total))) + 'px';
       size = Math.round(page * (page / total));
     } else {
-      // this.grabEl.style.width = 0;
-      // this.grabEl.style.left = 0;
       size = 0;
       this.offset = 0;
     }
-
-    // if (this.grabEl.offsetLeft + this.grabEl.offsetWidth > this.el.offsetWidth) {
-    //   this.grabEl.style.left = (this.el.offsetWidth - this.grabEl.offsetWidth) + 'px';
-    // } else if (this.grabEl.offsetLeft < 0) {
-    //   this.grabEl.style.left = 0;
-    // }
-    //
-    // let ratio = (this.grabEl.offsetLeft) / (this.el.offsetWidth - this.grabEl.offsetWidth);
-    // this.component.scrollLeft = (this.component.scrollWidth - this.component.offsetWidth) * ratio;
 
     if (this.offset + size > canal) {
       this.offset = canal - size;

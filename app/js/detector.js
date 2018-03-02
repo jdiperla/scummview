@@ -52,26 +52,28 @@ class Detector {
   static detectMajorVersion(rootPath) {
     let version;
     try {
+      // version 2 or 3 ?
       fs.accessSync(path.join(rootPath, '00.lfl'), fs.constants.F_OK | fs.constants.R_OK);
-      // version 2 or 3
       try {
+        // version 3?
         fs.accessSync(path.join(rootPath, '99.lfl'), fs.constants.F_OK | fs.constants.R_OK);
-        // version 3
         return 3;
       } catch (err) {
-        // console.log(err.message);
-        // guessing version 2
+        // version 1 or 2?
+      }
+      try {
+        // Version 2?
+        fs.accessSync(path.join(rootPath, '58.lfl'), fs.constants.F_OK | fs.constants.R_OK);
         return 2;
+      } catch (err) {
       }
     } catch (err) {
-      // console.log(err.message);
     }
     try {
+      // Version 4?
       fs.accessSync(path.join(rootPath, '000.lfl'), fs.constants.F_OK | fs.constants.R_OK);
-       // version 4
-       return 4;
+      return 4;
     } catch (err) {
-      // console.log(err.message);
     }
     return 0;
   }

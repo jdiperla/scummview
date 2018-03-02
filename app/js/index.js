@@ -2,6 +2,7 @@
 const Rectangle = require('./rectangle');
 const Detector = require('./detector');
 const Tools = require('./tools');
+const Scumm2 = require('./scumm2/scumm2');
 const Scumm3 = require('./scumm3/scumm3');
 const Scumm4 = require('./scumm4/scumm4');
 
@@ -25,8 +26,8 @@ let ui = {};
 
 // let thumbWidth = 128;
 // let thumbHeight = 80;
-let thumbWidth = 160;
-let thumbHeight = 100;
+let thumbWidth = 128;
+let thumbHeight = 80;
 
 function createThumbnailFromCanvas(image) {
   let canvas = document.createElement('canvas');
@@ -114,7 +115,7 @@ function updateElements() {
 
   ui.room.reset();
   ui.room.adjust();
-  
+
   // ui.roomDetail.hide();
   // ui.roomList.reset();
 }
@@ -151,6 +152,8 @@ function showRoomDetail(id) {
     objects: objects
   }
 
+  // ui.room.reset();
+  ui.room.adjust();
   ui.room.show(model);
   // ui.roomDetail.show();
   // ui.roomDetail.reset();
@@ -165,16 +168,6 @@ function createElements() {
     showRoomDetail(id);
   });
 
-  // ui.roomList = new RoomList();
-  // ui.roomList.on('select', (id) => {
-  //   showRoomDetail(id);
-  // });
-  // ui.roomDetail = new RoomDetail();
-
-  // ui.roomContent = new Component({ el: html.div().class('room-content').dom() });
-  // ui.roomContent.dom().appendChild(ui.roomList.dom());
-  // ui.roomContent.dom().appendChild(ui.roomDetail.dom());
-
   ui.char = new CharacterMap();
 
   ui.pane = new Pane();
@@ -186,17 +179,19 @@ function createElements() {
 }
 
 function detect(rootPath) {
-  let stats = fs.statSync(rootPath);
-  if (stats.isDirectory()) {
-    let detector = new Detector(rootPath);
-    if (detector.version == 3) {
-      game = new Scumm3(detector);
-    }
-    else if (detector.version == 4) {
-      game = new Scumm4(detector);
-    }
-    if (game) updateElements();
+  let detector = new Detector(rootPath);
+  // console.log(detector.version);
+
+  if (detector.version == 2) {
+    game = new Scumm2(detector);
   }
+  else if (detector.version == 3) {
+    game = new Scumm3(detector);
+  }
+  else if (detector.version == 4) {
+    game = new Scumm4(detector);
+  }
+  if (game) updateElements();
 }
 
 function onKeyDown(event) {
@@ -204,9 +199,17 @@ function onKeyDown(event) {
 
 function onDrop(event) {
   event.preventDefault();
+
   let files = event.dataTransfer.files;
+
   if (files[0]) {
-    detect(files[0].path);
+    let path = files[0].path;
+    let stats = fs.statSync(path);
+    if (stats.isDirectory()) {
+      detect(path);
+    } else {
+      console.log(`"${path}" is not a directory`);
+    }
   }
 }
 
