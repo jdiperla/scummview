@@ -12,7 +12,7 @@ const Pane = require('./ui/pane');
 const CharacterMap = require('./ui/character_map');
 const Room = require('./ui/room');
 
-const Parser = require('./ui/parser');
+// const Parser = require('./ui/parser');
 
 const fs = require('fs');
 const path = require('path');
