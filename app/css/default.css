@@ -320,3 +320,9 @@ body, html {
   background: rgb(240, 240, 240);
   z-index: 100;
 }
+
+#overlay {
+  position: fixed;
+  left: 320px;
+  top: 0;
+}

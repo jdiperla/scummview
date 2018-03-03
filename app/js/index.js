@@ -89,8 +89,9 @@ function updateElements() {
 
   updateRoomList(roomids);
 
-  let dropEl = document.getElementById('drop');
-  dropEl.style.visibility = 'hidden';
+  let dropEl = document.querySelector('#drop');
+  if (dropEl)
+    dropEl.style.visibility = 'hidden';
 
   ui.char.clear();
 

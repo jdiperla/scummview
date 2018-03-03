@@ -137,7 +137,7 @@ class Scumm2 extends Game {
   }
 
 
-  prepareDrawBitmap(ptr, vs, x, y, width, height, stripnr, numstrip, table) {
+  prepareDrawBitmap(ptr, width, height) {
   	//
   	// Since V3, all graphics data was encoded in strips, which is very efficient
   	// for redrawing only parts of the screen. However, V2 is different: here
@@ -146,15 +146,16 @@ class Scumm2 extends Game {
   	// differently from all other (newer) graphic formats for this reason.
   	//
   	// StripTable *table = (_objectMode ? 0 : _roomStrips);
+    let stripnr = 0;
+    let numstrip = width / 8;
   	let left = (stripnr * 8);
   	let right = left + (numstrip * 8);
-  	let dst;
+  	let dst = new Uint8Array(width * height);
   	let mask_ptr;
   	let src;
   	let color, data = 0;
   	let run;
   	let dither = false;
-  	let dither_table = new Array(128);
   	let ptr_dither_table;
   	let theX, theY, maxX;
 
@@ -163,6 +164,7 @@ class Scumm2 extends Game {
     let _vertStripNextInc = height * pitch - 1;
 
   	// memset(dither_table, 0, sizeof(dither_table));
+    let dither_table = new Array(128);
     dither_table.fill(0);
 
   	// if (vs->hasTwoBuffers)
@@ -177,25 +179,27 @@ class Scumm2 extends Game {
     let ditheroffset = 0;
 
 
-  	if (table) {
-  		run = table.run[stripnr];
-  		color = table.color[stripnr];
-      src = ptr;
-  		srcoffset = table.offsets[stripnr];
-  		theX = left;
-  		maxX = right;
-  	} else {
+  	// if (table) {
+  	// 	run = table.run[stripnr];
+  	// 	color = table.color[stripnr];
+    //   src = ptr;
+  	// 	srcoffset = table.offsets[stripnr];
+  	// 	theX = left;
+  	// 	maxX = right;
+  	// } else {
   		run = 1;
   		color = 0;
   		src = ptr;
   		theX = 0;
   		maxX = width;
-  	}
+  	// }
 
   	// Decode and draw the image data.
   	// assert(height <= 128);
   	for (; theX < maxX; theX++) {
-  		ptr_dither_table = dither_table;
+  		// ptr_dither_table = dither_table;
+      ditheroffset = 0;
+
   		for (theY = 0; theY < height; theY++) {
   			if (--run == 0) {
   				// data = *src++;
@@ -216,17 +220,18 @@ class Scumm2 extends Game {
   			}
   			if (!dither) {
   				// *ptr_dither_table = color;
-          ptr_dither_table[ditheroffset] = color;
+          dither_table[ditheroffset] = color;
   			}
   			if (left <= theX && theX < right) {
   				// *dst = *ptr_dither_table++;
-          dst[dstoffset] = ptr_dither_table[ditheroffset++];
+          dst[dstoffset] = dither_table[ditheroffset++];
   				// dst += vs->pitch;
           dstoffset += pitch;
   			}
   		}
   		if (left <= theX && theX < right) {
-  			dst -= _vertStripNextInc;
+  			// dst -= _vertStripNextInc;
+        dstoffset -= _vertStripNextInc;
   		}
   	}
 
@@ -269,6 +274,8 @@ class Scumm2 extends Game {
   	// 	} while (--run);
   	// 	run = *src++;
   	// }
+
+    return dst;
   }
 
   generateStripTable(src, width, height) {
@@ -386,12 +393,26 @@ class Scumm2 extends Game {
     let numSounds = stream.getUint8(22);
 		let numScripts = stream.getUint8(23);
 
-    let offset = IM00_offset;
-    let size = stream.getUint16LE(offset);
+    // let _resourceHeaderSize = 4;
+    //
+    // let EXCD_offs = stream.getUint16LE(0x18);
+		// let EXCD_len = stream.getUint16LE(0x1A) - EXCD_offs + _resourceHeaderSize;	// HACK
+    //
+    // let ENCD_offs = READ_LE_UINT16(0x1A);
+		// let ENCD_len = READ_LE_UINT16(0) - ENCD_offs + _resourceHeaderSize; // HACK
+    //
+    // let offset = IM00_offset;
+    // let size = stream.getUint16LE(offset);
 
-    // console.log('smap_size', size);
+    let ptr = stream.getBytes(IM00_offset);
+    let pixels = this.prepareDrawBitmap(ptr, width, height);
+    let pixelsRGBA = this.graphics.indexedToRGBA(pixels);
+    let canvas =  Tools.createCanvasFromBuffer(pixelsRGBA, width, height);
 
-    console.log('Room', num, width, height, numObjects);
+    let overlay = document.querySelector('#overlay');
+    overlay.appendChild(canvas);
+
+    console.log('Room', num, width, height, numObjects, IM00_offset);
 
     let room = new Room({
         width: width,
