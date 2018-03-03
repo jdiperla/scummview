@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/pinkbunkadoo/scummview/issues"
   },
-  "homepage": "https://github.com/pinkbunkadoo/scummview#readme"
+  "homepage": "https://github.com/pinkbunkadoo/scummview#readme",
+  "dependencies": {
+    "octicons": "^7.1.0"
+  }
 }

@@ -6,11 +6,9 @@ body, html {
   user-select: none;
   cursor: default;
 
-  font-family: sans-serif;
-}
-
-.listing {
-  display: flex;
+  font-family: 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 .heading1 {
@@ -18,25 +16,15 @@ body, html {
 }
 
 .heading2 {
-  font-size: 15px;
-  font-weight: bold;
-  margin: 12px 0 8px 0;
 }
 
 .heading3 {
-  font-size: 16px;
-  margin-top: 8px;
-  margin-bottom: 4px;
 }
 
 .scroller {
   display: flex;
   position: relative;
-  /* background: lightgray; */
   background: rgb(240, 240, 240);
-  /* background: gray; */
-  /* border: 1px solid gray; */
-  /* box-sizing: border-box; */
 }
 
 .scroller.horizontal {
@@ -52,7 +40,6 @@ body, html {
 .scroller-grab {
   position: absolute;
   background: gray;
-  /* background: rgba(0, 0, 0, 0.2); */
 }
 
 .scroller-grab.horizontal {
@@ -86,21 +73,21 @@ body, html {
 .tab {
   display: flex;
   align-items: center;
-  justify-content: center;
-  height: 4rem;
-  font-size: .8rem;
+  color: rgb(80, 80, 80);
+  font-size: 14px;
+  font-weight: 500;
+  padding: 4px 8px 4px 8px;
   box-sizing: border-box;
-  border-bottom: 1px solid lightgray;
   background: rgb(240, 240, 240);
 }
 
 .tab:hover {
-  /* filter: brightness(95%); */
-  background: cyan;
 }
 
 .tab.active {
-  background: white;
+  color: black;
+  background: rgb(192, 192, 192);
+
 }
 
 .tab.active:hover {
@@ -113,12 +100,11 @@ body, html {
   box-sizing: border-box;
   border-right: 1px solid lightgray;
   background: rgb(240, 240, 240);
-  /* background: lightgray; */
 }
 
 .pane {
   display: grid;
-  grid-template-columns: 64px calc(100vw - 64px);
+  grid-template-columns: 128px calc(100vw - 128px);
   height: 100%;
 }
 
@@ -134,6 +120,32 @@ body, html {
   /* background: lightgray; */
   /* background: rgb(224, 224, 224); */
   background: rgb(240, 240, 240);
+}
+
+.listing {
+  display: flex;
+  border: 1px solid black;
+  width: 50vw;
+  font-size: 12px;
+  color: lightgray;
+  line-height: 17px;
+  background: rgb(64, 66, 68);
+}
+
+.listing-list {
+  /* list-style-position: inside; */
+  list-style-type: none;
+  /* list-style-image: url('blank.gif'); */
+  margin: 0;
+  padding: 0;
+}
+
+.listing-root {
+
+}
+
+.listing-item {
+  padding-left: 17px;
 }
 
 .character-map-container {

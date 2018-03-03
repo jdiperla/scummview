@@ -11,6 +11,7 @@ const Component = require('./ui/component');
 const Pane = require('./ui/pane');
 const CharacterMap = require('./ui/character_map');
 const Room = require('./ui/room');
+const Listing = require('./ui/listing');
 
 // const Parser = require('./ui/parser');
 
@@ -162,7 +163,7 @@ function showRoomDetail(id) {
 }
 
 function createElements() {
-  let main = document.querySelector('#app');
+  ui.main = document.querySelector('#app');
 
   ui.room = new Room();
   ui.room.on('select', (id) => {
@@ -176,7 +177,8 @@ function createElements() {
   ui.pane.add({ component: ui.char, title: 'Charsets' });
   ui.pane.show(0);
 
-  main.appendChild(ui.pane.dom());
+  ui.main.appendChild(ui.pane.dom());
+
 }
 
 function detect(rootPath) {
@@ -192,7 +194,7 @@ function detect(rootPath) {
   else if (detector.version == 4) {
     game = new Scumm4(detector);
   }
-  // if (game) updateElements();
+  if (game) updateElements();
 }
 
 function onKeyDown(event) {

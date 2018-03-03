@@ -27,25 +27,22 @@ class Scumm2 extends Game {
   detect() {
     this.parseIndex();
 
-    this.getRoom(1);
+    let room = this.getRoom(1);
+    if (room) {
+      let pixelsRGBA = this.getRoomBitmap(room.id);
 
-    // this.parseCharset();
-    //
-    // let room = this.getRoom(1);
-    // if (room) {
-    //   let pixelsRGBA = this.getRoomBitmap(room.id);
-    //
-    //   // We hash the decoded image data from room 1 and compare that
-    //   // against known hash values to identify the game
-    //   let hash = Tools.checksum(pixelsRGBA);
-    //
+      // We hash the decoded image data from room 1 and compare that
+      // against known hash values to identify the game
+      let hash = Tools.checksum(pixelsRGBA);
+      console.log(hash);
+
     //   let info = Detector.gameInfoFromHash(hash);
     //   if (info) {
     //     this.name = info.name;
     //     this.id = info.id;
     //     this.version = info.version;
     //   }
-    // }
+    }
   }
 
   parseIndex() {
@@ -98,17 +95,18 @@ class Scumm2 extends Game {
 
   getRoomBitmap(roomid) {
     let room = this.getRoom(roomid);
-    let stream = this.getResourceStream(room.id);
+    let stream = this.getResourceStream(this.resourceFilename(room.id));
+    if (!stream) return;
 
-    if (room.imageOffset > stream.size) return;
+    if (room.IM00_offset > stream.size) return;
 
-    let hasImage = (room.width > 0 && room.height > 0 && room.width !== 8);
+    let hasImage = (room.width > 0 && room.height > 0);
 
     if (hasImage) {
-      let bytes = stream.getBytes(room.imageOffset, stream.getUint16LE(0));
-
+      console.log('getRoomBitmap', room.IM00_offset);
+      let bytes = stream.getBytes(room.IM00_offset);
       try {
-        let pixels = this.graphics.decodeSmap(bytes, room.width, room.height, false);
+        let pixels = this.decodeBitmap(bytes, room.width, room.height);
         if (pixels) {
           let pixelsRGBA = this.graphics.indexedToRGBA(pixels);
           return pixelsRGBA;
@@ -120,8 +118,10 @@ class Scumm2 extends Game {
   }
 
   getResourceStream(filename) {
+    console.log('getResourceStream', filename);
     let buffer;
     if (this.filecache[filename]) {
+      console.log('cached');
       buffer = this.filecache[filename];
     } else {
       try {
@@ -137,7 +137,7 @@ class Scumm2 extends Game {
   }
 
 
-  prepareDrawBitmap(ptr, width, height) {
+  decodeBitmap(ptr, width, height) {
   	//
   	// Since V3, all graphics data was encoded in strips, which is very efficient
   	// for redrawing only parts of the screen. However, V2 is different: here
@@ -177,7 +177,6 @@ class Scumm2 extends Game {
     let srcoffset = 0;
     let dstoffset = 0;
     let ditheroffset = 0;
-
 
   	// if (table) {
   	// 	run = table.run[stripnr];
@@ -235,6 +234,8 @@ class Scumm2 extends Game {
   		}
   	}
 
+    console.log('decodeBitmap', srcoffset);
+
 
   	// // Draw mask (zplane) data
   	// theY = 0;
@@ -278,106 +279,6 @@ class Scumm2 extends Game {
     return dst;
   }
 
-  generateStripTable(src, width, height) {
-    // struct StripTable {
-    // 	int offsets[160];
-    // 	int run[160];
-    // 	int color[160];
-    // 	int zoffsets[120];	// FIXME: Why only 120 here?
-    // 	int zrun[120];		// FIXME: Why only 120 here?
-    // };
-
-    let table = {
-      offsets: [],
-      run: [],
-      color: [],
-      zoffsets: [],
-      zrun: [],
-    };
-
-  	// If no strip table was given to use, allocate a new one
-  	// if (table == 0)
-  	// 	table = (StripTable *)calloc(1, sizeof(StripTable));
-
-  	// const byte *bitmapStart = src;
-  	// byte color = 0, data = 0;
-  	// int x, y, length = 0;
-  	// byte run = 1;
-    let bitmapStart = 0;
-  	let color = 0, data = 0;
-  	let x, y, length = 0;
-  	let run = 1;
-
-    let offset = 0;
-
-  	// Decode the graphics strips, and memorize the run/color values
-  	// as well as the byte offset.
-  	for (x = 0; x < width; x++) {
-
-  		if ((x % 8) == 0) {
-  			// assert(x / 8 < 160);
-  			table.run[x / 8] = run;
-  			table.color[x / 8] = color;
-  			// table.offsets[x / 8] = src - bitmapStart;
-        table.offsets[x / 8] = offset - bitmapStart;
-  		}
-
-  		for (y = 0; y < height; y++) {
-  			if (--run == 0) {
-  				// data = *src++;
-          data = src[offset++];
-  				if (data & 0x80) {
-  					run = data & 0x7f;
-  				} else {
-  					run = data >> 4;
-  				}
-  				if (run == 0) {
-  					// run = *src++;
-            run = src[offset++];
-  				}
-  				color = data & 0x0f;
-  			}
-  		}
-  	}
-
-  	// // The mask data follows immediately after the graphics.
-  	// x = 0;
-  	// y = height;
-  	// width /= 8;
-    //
-  	// for (;;) {
-  	// 	// length = *src++;
-    //   length = src[offset++];
-  	// 	// const byte runFlag = length & 0x80;
-    //   let runFlag = length & 0x80;
-  	// 	if (runFlag) {
-  	// 		length &= 0x7f;
-  	// 		// data = *src++;
-    //     data = src[offset++];
-  	// 	}
-  	// 	do {
-  	// 		if (!runFlag)
-  	// 			// data = *src++;
-    //       data = src[offset++];
-    //
-  	// 		if (y == height) {
-  	// 			// assert(x < 120);
-  	// 			// table.zoffsets[x] = src - bitmapStart - 1;
-    //       table.zoffsets[x] = offset - bitmapStart - 1;
-  	// 			table.zrun[x] = length | runFlag;
-  	// 		}
-  	// 		if (--y == 0) {
-  	// 			if (--width == 0)
-  	// 				return table;
-  	// 			x++;
-  	// 			y = height;
-  	// 		}
-  	// 	} while (--length);
-  	// }
-
-  	return table;
-  }
-
   getRoom(num) {
     if (this.rooms[num])
       return this.rooms[num];
@@ -393,28 +294,17 @@ class Scumm2 extends Game {
     let numSounds = stream.getUint8(22);
 		let numScripts = stream.getUint8(23);
 
-    // let _resourceHeaderSize = 4;
-    //
-    // let EXCD_offs = stream.getUint16LE(0x18);
-		// let EXCD_len = stream.getUint16LE(0x1A) - EXCD_offs + _resourceHeaderSize;	// HACK
-    //
-    // let ENCD_offs = READ_LE_UINT16(0x1A);
-		// let ENCD_len = READ_LE_UINT16(0) - ENCD_offs + _resourceHeaderSize; // HACK
-    //
-    // let offset = IM00_offset;
-    // let size = stream.getUint16LE(offset);
+    // let ptr = stream.getBytes(IM00_offset);
+    // let pixels = this.prepareDrawBitmap(ptr, width, height);
+    // let pixelsRGBA = this.graphics.indexedToRGBA(pixels);
+    // let canvas =  Tools.createCanvasFromBuffer(pixelsRGBA, width, height);
 
-    let ptr = stream.getBytes(IM00_offset);
-    let pixels = this.prepareDrawBitmap(ptr, width, height);
-    let pixelsRGBA = this.graphics.indexedToRGBA(pixels);
-    let canvas =  Tools.createCanvasFromBuffer(pixelsRGBA, width, height);
-
-    let overlay = document.querySelector('#overlay');
-    overlay.appendChild(canvas);
-
-    console.log('Room', num, width, height, numObjects, IM00_offset);
+    // let overlay = document.querySelector('#overlay');
+    // overlay.appendChild(canvas);
+    // console.log('Room', num, width, height, numObjects, IM00_offset);
 
     let room = new Room({
+        id: num,
         width: width,
         height: height,
         IM00_offset: IM00_offset,
@@ -422,6 +312,8 @@ class Scumm2 extends Game {
         numSounds: numSounds,
         numScripts: numScripts
       });
+
+    this.rooms[num] = room;
 
     return room;
   }
