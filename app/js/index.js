@@ -191,7 +191,7 @@ function detect(rootPath) {
   else if (detector.version == 4) {
     game = new Scumm4(detector);
   }
-  if (game) updateElements();
+  // if (game) updateElements();
 }
 
 function onKeyDown(event) {

@@ -6,6 +6,9 @@ const Stream = require('../stream');
 const Detector = require('../detector');
 const Graphics = require('../graphics');
 const Game = require('../game');
+
+const Room = require('./room');
+
 // const Charset = require('./charset');
 
 const OF_OWNER_MASK = 0x0F;
@@ -151,7 +154,7 @@ class Scumm2 extends Game {
   	let color, data = 0;
   	let run;
   	let dither = false;
-  	let dither_table[128];
+  	let dither_table = new Array(128);
   	let ptr_dither_table;
   	let theX, theY, maxX;
 
@@ -383,6 +386,11 @@ class Scumm2 extends Game {
     let numSounds = stream.getUint8(22);
 		let numScripts = stream.getUint8(23);
 
+    let offset = IM00_offset;
+    let size = stream.getUint16LE(offset);
+
+    // console.log('smap_size', size);
+
     console.log('Room', num, width, height, numObjects);
 
     let room = new Room({
@@ -394,7 +402,7 @@ class Scumm2 extends Game {
         numScripts: numScripts
       });
 
-
+    return room;
   }
 
   getRoomList() {
