@@ -9,11 +9,11 @@ const Scumm4 = require('./scumm4/scumm4');
 const html = require('./ui/html');
 const Component = require('./ui/component');
 const Pane = require('./ui/pane');
+const Panel = require('./ui/panel');
 const CharacterMap = require('./ui/character_map');
 const Room = require('./ui/room');
-const Listing = require('./ui/listing');
-
-// const Parser = require('./ui/parser');
+const Sidebar = require('./ui/sidebar');
+const Info = require('./ui/info');
 
 const fs = require('fs');
 const path = require('path');
@@ -25,10 +25,8 @@ let rooms = [];
 let roomid = 0;
 let ui = {};
 
-// let thumbWidth = 128;
-// let thumbHeight = 80;
-let thumbWidth = 128;
-let thumbHeight = 80;
+let thumbWidth = 64;
+let thumbHeight = 40;
 
 function createThumbnailFromCanvas(image) {
   let canvas = document.createElement('canvas');
@@ -94,7 +92,7 @@ function updateElements() {
   if (dropEl)
     dropEl.style.visibility = 'hidden';
 
-  ui.char.clear();
+  ui.charsets.clear();
 
   let model = { charsets: [] };
   for (var i = 0; i < game.charsets.length; i++) {
@@ -113,7 +111,7 @@ function updateElements() {
     }
   }
 
-  ui.char.update(model);
+  ui.charsets.update(model);
 
   ui.room.reset();
   ui.room.adjust();
@@ -162,23 +160,62 @@ function showRoomDetail(id) {
   // ui.roomDetail.update(model);
 }
 
+function showPanel(id) {
+  if (id == 'info') {
+    console.log('info');
+    ui.content.clear();
+    ui.content.add(ui.info);
+  }
+  else if (id == 'rooms') {
+    console.log('rooms');
+    ui.content.clear();
+    ui.content.add(ui.room);
+  }
+  else if (id == 'charsets') {
+    console.log('charsets');
+    ui.content.clear();
+    ui.content.add(ui.charsets);
+  }
+}
+
 function createElements() {
-  ui.main = document.querySelector('#app');
+  // ui.app = document.querySelector('#app');
+
+  ui.info = new Info();
 
   ui.room = new Room();
   ui.room.on('select', (id) => {
     showRoomDetail(id);
   });
 
-  ui.char = new CharacterMap();
+  ui.charsets = new CharacterMap();
 
-  ui.pane = new Pane();
-  ui.pane.add({ component: ui.room, title: 'Rooms' });
-  ui.pane.add({ component: ui.char, title: 'Charsets' });
-  ui.pane.show(0);
+  // ui.pane = new Pane();
+  // ui.pane.add({ component: ui.room, title: 'Rooms' });
+  // ui.pane.add({ component: ui.char, title: 'Charsets' });
+  // ui.pane.show(0);
+  // ui.main.appendChild(ui.pane.dom());
 
-  ui.main.appendChild(ui.pane.dom());
+  ui.main = new Pane();
 
+  ui.sidebar = new Sidebar();
+  ui.sidebar.update({ items: [
+      { id: 'info', title: 'Info' },
+      { id: 'rooms', title: 'Rooms' },
+      { id: 'charsets', title: 'Charsets' }
+    ]
+  });
+  ui.sidebar.on('select', (id) => {
+    showPanel(id);
+  });
+
+  ui.content = new Panel();
+  ui.content.addClass('content');
+
+  ui.main.add({ component: ui.sidebar })
+  ui.main.add({ component: ui.content });
+
+  document.querySelector('#app').appendChild(ui.main.dom());
 }
 
 function detect(rootPath) {

@@ -3,12 +3,20 @@ body, html {
   padding: 0;
   overflow: hidden;
 
+  background: rgb(240, 240, 240);
+
   user-select: none;
   cursor: default;
 
   font-family: 'Segoe UI', sans-serif;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+}
+
+#app {
+  display: flex;
+  width: 100vw;
+  height: 100vh;
 }
 
 .heading1 {
@@ -91,7 +99,6 @@ body, html {
 }
 
 .tab.active:hover {
-  /* background: green; */
 }
 
 .tab-group {
@@ -103,49 +110,50 @@ body, html {
 }
 
 .pane {
-  display: grid;
-  grid-template-columns: 128px calc(100vw - 128px);
-  height: 100%;
+  display: flex;
+  width: 100%;
+  /* flex: auto; */
+  /* display: grid; */
+  /* grid-template-columns: 128px calc(100vw - 128px); */
+  /* height: 100%; */
 }
 
 .panel {
-  /* display: flex; */
-  /* border: 1px solid red; */
 }
 
-#app {
+.sidebar {
   display: flex;
-  width: 100vw;
-  height: 100vh;
-  /* background: lightgray; */
-  /* background: rgb(224, 224, 224); */
+  flex-direction: column;
+  width: 128px;
+  font-size: 14px;
+  font-weight: 500;
+  color: rgb(80, 80, 80);
   background: rgb(240, 240, 240);
+  /* border-right: 1px solid lightgray; */
 }
 
-.listing {
-  display: flex;
-  border: 1px solid black;
-  width: 50vw;
-  font-size: 12px;
-  color: lightgray;
-  line-height: 17px;
-  background: rgb(64, 66, 68);
-}
-
-.listing-list {
-  /* list-style-position: inside; */
-  list-style-type: none;
-  /* list-style-image: url('blank.gif'); */
-  margin: 0;
+.sidebar-list {
+  list-style: none;
   padding: 0;
+  margin: 0;
 }
 
-.listing-root {
-
+.sidebar-item {
+  padding: 4px 8px 4px 8px;
+  /* background: gray; */
 }
 
-.listing-item {
-  padding-left: 17px;
+.sidebar-item.selected {
+  color: black;
+  background: rgb(192, 192, 192);
+}
+
+.content {
+  display: flex;
+  /* width: calc(100% - 128px); */
+  width: 100%;
+  border: 1px solid red;
+  /* background: green; */
 }
 
 .character-map-container {
@@ -189,8 +197,8 @@ body, html {
   display: grid;
   /* grid-template-columns: 192px calc(100vw - 64px - 192px); */
   /* grid-template-rows: 100vh; */
-  grid-template-columns: calc(100vw - 64px);
-  grid-template-rows: 400px calc(100vh - 400px);
+  /* grid-template-columns: calc(100vw - 64px); */
+  /* grid-template-rows: 400px calc(100vh - 400px); */
 }
 
 .room-list-container {

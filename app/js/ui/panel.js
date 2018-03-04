@@ -7,13 +7,16 @@ class Panel extends Component {
     this.render();
   }
 
-  updateElements() {
+  render() {
+    this.el = html.div().class('panel').dom();
   }
 
-  render() {
-    let component = html.div().class('panel');
-    this.el = component.dom();
-    this.updateElements();
+  update(model={}) {
+    super.update(model);
+    this.updateElement();
+  }
+
+  updateElements() {
   }
 
   add(component) {

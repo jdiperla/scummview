@@ -23,6 +23,10 @@ class Component extends EventEmitter {
     }
   }
 
+  addClass(name) {
+    this.el.classList.add(name);
+  }
+
   dom() {
     return this.el;
   }
