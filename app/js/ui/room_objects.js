@@ -6,26 +6,22 @@ class RoomObjects extends Component {
   constructor(params={}) {
     super(params);
     // this.render();
-  }
-
-  render() {
-    let container = html.div().class('room-objects-container');
+    this.el = html.div().class('room-objects-container').dom();
 
     // container.append(html.div().class('heading3').append(html.text('Objects')));
 
     let objects = html.div().attribute('id', 'objects').class('room-objects');
-    container.append(objects);
+    this.el.appendChild(objects.dom());
 
-    this.scroller = new Scroller({ component: objects.dom(), orientation: 'horizontal' });
-    container.dom().append(this.scroller.dom());
+    this.scroller = new Scroller({ orientation: 'horizontal' });
+    this.scroller.update({ component: objects.dom() });
+    this.el.appendChild(this.scroller.dom());
 
-    this.el = container.dom();
+    // this.el = container.dom();
     // this.updateElements();
   }
 
-  updateElements() {
-    // console.log('roomobjects.updateElements', this.model.objects);
-
+  render() {
     if (this.model.objects && this.model.objects.length) {
       let objectsEl = this.el.querySelector('#objects');
 
@@ -65,10 +61,10 @@ class RoomObjects extends Component {
     }
   }
 
-  update(model={}) {
-    super.update(model);
-    this.updateElements();
-  }
+  // update(model={}) {
+  //   super.update(model);
+  //   this.updateElements();
+  // }
 
   adjust() {
     this.scroller.adjust();

@@ -157,7 +157,7 @@ class Scumm2 extends Scumm {
   	let ptr_dither_table;
   	let theX, theY, maxX;
 
-    let pitch = 320;
+    let pitch = width;
     // _vertStripNextInc = height * vs->pitch - 1 * vs->format.bytesPerPixel;
     let _vertStripNextInc = height * pitch - 1;
 

@@ -43,7 +43,7 @@ class RoomDetail extends Component {
 
   update(model={}) {
     super.update(model);
-    // this.roomImage.update({ image: this.model.image, width: this.model.width, height: this.model.height });
+    this.roomImage.update({ image: this.model.image, width: this.model.width, height: this.model.height });
     // this.roomObjects.update({ objects: this.model.objects });
   }
 

@@ -7,33 +7,35 @@ class RoomImage extends Component {
     super(params);
     this.objects = [];
     // this.render();
-  }
-
-  render() {
-    let container = html.div().class('room-image-container');
+    this.el = html.div().class('room-image-container').dom();
 
     let canvas = document.createElement('canvas');
     canvas.id = 'graphic';
-    canvas.width = this.model.width;
-    canvas.height = this.model.height;
 
     let component = html.div().class('room-image').append(canvas);
     // let outer = html.div().class('room-image-border');
     // outer.append(component);
 
-    container.dom().append(component.dom());
+    this.el.appendChild(component.dom());
     // container.dom().append(outer.dom());
 
     // this.scroller = new Scroller({ component: component.dom(), orientation: 'horizontal' });
-    this.scroller = new Scroller({ component: component.dom(), orientation: 'horizontal' });
-    container.dom().append(this.scroller.dom());
+    this.scroller = new Scroller({ orientation: 'horizontal' });
+    this.scroller.update({ component: component.dom() });
+    this.el.appendChild(this.scroller.dom());
 
-    this.el = container.dom();
+    // this.el = container.dom();
 
     this.el.addEventListener('mousedown', this);
     this.el.addEventListener('wheel', this);
+  }
 
-    this.updateElements();
+  render() {
+    // canvas.width = this.model.width;
+    // canvas.height = this.model.height;
+
+    this.renderImage();
+    // this.updateElements();
   }
 
   renderImage() {
@@ -69,14 +71,13 @@ class RoomImage extends Component {
   }
 
   updateElements() {
-    this.renderImage();
-    this.scroller.update();
   }
 
   update(model={}) {
     // console.log('scrollImage.update', model);
     super.update(model);
-    this.updateElements();
+    this.scroller.update();
+    // this.updateElements();
 
     // let canvas = this.el.querySelector('#graphic');
     //

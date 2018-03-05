@@ -34,12 +34,12 @@ class Rooms extends Component {
 
   reset() {
     this.list.reset();
-    // this.detail.reset();
+    this.detail.reset();
   }
 
   adjust() {
     this.list.adjust();
-    // this.detail.adjust();
+    this.detail.adjust();
   }
 }
 

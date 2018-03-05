@@ -61,6 +61,10 @@ class Scroller extends Component {
     }
   }
 
+  render() {
+    this.updateElements();
+  }
+
   // update(props={}) {
   //   super.update(props);
   //   this.updateElements();
