@@ -4,27 +4,26 @@ const { EventEmitter } = require('events');
 class Component extends EventEmitter {
   constructor(params={}) {
     super();
-
-    this.model = {};
-
-    this.el = params.el || document.createElement('div');
-    params.id ? this.el.id = params.id : null;
-
-    for (let name in params.model) {
-      this.model[name] = params.model[name];
-    }
+    this.el = document.createElement('div');
   }
 
-  render() {}
+  render() {
+  }
 
   update(model={}) {
+    if (!this.model) this.model = {};
     for (let name in model) {
       this.model[name] = model[name];
     }
+    this.render();
   }
 
   addClass(name) {
     this.el.classList.add(name);
+  }
+
+  removeClass(name) {
+    this.el.classList.remove(name);
   }
 
   dom() {
@@ -33,7 +32,6 @@ class Component extends EventEmitter {
 
   hide() {
     this.el.style.setProperty('visibility', 'hidden');
-    // console.log(this.el, 'hidden');
   }
 
   show() {

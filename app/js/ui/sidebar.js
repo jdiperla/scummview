@@ -22,23 +22,27 @@ class Sidebar extends Component {
     let listEl = html.element('ol').class('sidebar-list').dom();
     for (var i = 0; i < this.model.items.length; i++) {
       let item = this.model.items[i];
-      let el = html.element('li').dataset('id', item.id).class('sidebar-item').dom();
+      let el = html.element('li').id(item.id).class('sidebar-item').dom();
+      // console.log(el);
       el.appendChild(html.text(item.title).dom());
-      el.onclick = (e) => {
-        let el = e.target;
-        let id = el.dataset.id;
-        if (this.selection !== el) {
-          if (this.selection !== null)
-            this.selection.classList.remove('selected');
-          el.classList.add('selected');
-          this.selection = el;
-        }
-        this.emit('select', id);
+      el.onclick = (event) => {
+        this.emit('select', event.target.id);
       };
       listEl.appendChild(el);
     }
     this.el.appendChild(listEl);
     // console.log('update');
+  }
+
+  setActive(id) {
+    // console.log('setActive', id);
+    let el = this.el.querySelector('#' + id);
+    if (el && this.selection !== el) {
+      if (this.selection)
+        this.selection.classList.remove('selected');
+      el.classList.add('selected');
+      this.selection = el;
+    }
   }
 
 }

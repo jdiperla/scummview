@@ -1,12 +1,11 @@
 const path = require('path');
 const fs = require('fs');
 
-const Tools = require('../tools');
-const Stream = require('../stream');
-const Detector = require('../detector');
-const Graphics = require('../graphics');
-const Game = require('../game');
-
+const Tools = require('../../tools');
+const Stream = require('../../stream');
+const Detector = require('../../detector');
+const Graphics = require('../../graphics');
+const Scumm = require('../scumm');
 const Room = require('./room');
 
 // const Charset = require('./charset');
@@ -16,32 +15,31 @@ const OF_STATE_MASK = 0xF0;
 const OF_STATE_SHL = 4;
 
 
-class Scumm2 extends Game {
+class Scumm2 extends Scumm {
   constructor(detector) {
     super(detector);
-    this.filecache = [];
     this.graphics = new Graphics();
     this.detect();
   }
 
   detect() {
     this.parseIndex();
-
     let room = this.getRoom(1);
     if (room) {
       let pixelsRGBA = this.getRoomBitmap(room.id);
-
       // We hash the decoded image data from room 1 and compare that
       // against known hash values to identify the game
       let hash = Tools.checksum(pixelsRGBA);
       console.log(hash);
 
-    //   let info = Detector.gameInfoFromHash(hash);
-    //   if (info) {
-    //     this.name = info.name;
-    //     this.id = info.id;
-    //     this.version = info.version;
-    //   }
+      let info = Detector.gameInfoFromHash(hash);
+      if (info) {
+        this.title = info.title;
+        this.id = info.id;
+        this.version = info.version;
+
+        console.log(this.title);
+      }
     }
   }
 
@@ -86,7 +84,7 @@ class Scumm2 extends Game {
 
     this.numSounds = stream.getUint8(offset);
 
-    console.log(this.numGlobalObjects, this.numRooms, this.numCostumes);
+    // console.log(this.numGlobalObjects, this.numRooms, this.numCostumes);
   }
 
   resourceFilename(num) {
@@ -103,7 +101,7 @@ class Scumm2 extends Game {
     let hasImage = (room.width > 0 && room.height > 0);
 
     if (hasImage) {
-      console.log('getRoomBitmap', room.IM00_offset);
+      // console.log('getRoomBitmap', room.IM00_offset);
       let bytes = stream.getBytes(room.IM00_offset);
       try {
         let pixels = this.decodeBitmap(bytes, room.width, room.height);
@@ -118,10 +116,10 @@ class Scumm2 extends Game {
   }
 
   getResourceStream(filename) {
-    console.log('getResourceStream', filename);
+    // console.log('getResourceStream', filename);
     let buffer;
     if (this.filecache[filename]) {
-      console.log('cached');
+      // console.log('cached');
       buffer = this.filecache[filename];
     } else {
       try {
@@ -234,7 +232,7 @@ class Scumm2 extends Game {
   		}
   	}
 
-    console.log('decodeBitmap', srcoffset);
+    // console.log('decodeBitmap', srcoffset);
 
 
   	// // Draw mask (zplane) data
@@ -319,23 +317,24 @@ class Scumm2 extends Game {
   }
 
   getRoomList() {
-    // try {
-    //   let files = fs.readdirSync(this.rootPath);
-    //   files = files.filter(element => {
-    //     let name = element.toLowerCase();
-    //     return (path.extname(name) == '.lfl' && name !== '00.lfl' && name !== '99.lfl');
-    //   });
-    //
-    //   let numbers = [];
-    //   for (var i = 0; i < files.length; i++) {
-    //     numbers[i] = parseInt(files[i].substring(0, 2));
-    //   }
-    //
-    //   return numbers;
-    // } catch (err) {
-    //
-    // }
-    return [];
+    try {
+      let files = fs.readdirSync(this.rootPath);
+      // console.log(files);
+      files = files.filter(element => {
+        let name = element.toLowerCase();
+        return (path.extname(name) == '.lfl' && name !== '00.lfl' && name !== '99.lfl');
+      });
+      let numbers = [];
+      for (var i = 0; i < files.length; i++) {
+        let number = parseInt(files[i].substring(0, 2));
+        if (!isNaN(number))
+          numbers.push(number);
+      }
+      return numbers;
+    } catch (err) {
+      console.log(err.message);
+    }
+    // return [];
   }
 
 

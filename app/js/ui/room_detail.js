@@ -6,22 +6,19 @@ const RoomObjects = require('./room_objects');
 
 
 class RoomDetail extends Component {
-  constructor(params={}) {
-    super(params);
-    this.render();
-  }
+  constructor() {
+    super();
 
-  render() {
-    let container = html.div().class('room-detail-container');
+    this.el = html.div().class('room-detail-container').dom();
 
     let component = html.div()
       .attribute('class', 'room-detail')
     ;
 
-    container.append(component);
+    this.el.appendChild(component.dom());
 
-    component.append(html.div().attribute('id', 'title').attribute('class', 'room-title'))
-    component.append(html.div().attribute('id', 'dimensions'))
+    component.append(html.div().id('title').class('room-title'));
+    component.append(html.div().id('dimensions'));
 
     component.append(html.div().style('height', '1rem'));
 
@@ -29,9 +26,6 @@ class RoomDetail extends Component {
     component.append(this.roomImage.dom());
 
     component.append(html.div().style('height', '1rem'));
-
-    // if (this.model.objects)
-      // component.append(html.div().class('heading3').append(html.text('Objects')));
 
     this.roomObjects = new RoomObjects();
     this.roomObjects.on('enter', (ob) => {
@@ -44,29 +38,37 @@ class RoomDetail extends Component {
       this.toggleObject(ob);
     });
     component.append(this.roomObjects.dom());
-
-    this.el = container.dom();
-    this.updateElements();
-  }
-
-  updateElements() {
-    let title = (this.model.id || '') + ' ' + (this.model.name || '');
-    this.el.querySelector('#title').innerHTML = title;
-    this.el.querySelector('#dimensions').innerHTML = this.model.width + 'x' + this.model.height;
-
-    this.roomImage.update({ image: this.model.image, width: this.model.width, height: this.model.height });
-    this.roomObjects.update({ objects: this.model.objects });
-
-    if (!this.model.image) {
-      this.roomImage.hide();
-    } else {
-      this.roomImage.show();
-    }
+    // this.updateElements();
   }
 
   update(model={}) {
     super.update(model);
-    this.updateElements();
+    // this.roomImage.update({ image: this.model.image, width: this.model.width, height: this.model.height });
+    // this.roomObjects.update({ objects: this.model.objects });
+  }
+
+  render() {
+    let title = (this.model.id || '') + ' ' + (this.model.name || '');
+
+    let titleEl = this.el.querySelector('#title');
+    let dimensionsEl = this.el.querySelector('#dimensions');
+
+    if (titleEl) {
+      if (titleEl.firstChild) titleEl.removeChild(titleEl.firstChild);
+      titleEl.appendChild(html.text(title).dom());
+    }
+
+    if (dimensionsEl) {
+      if (dimensionsEl.firstChild) dimensionsEl.removeChild(dimensionsEl.firstChild);
+      dimensionsEl.appendChild(html.text(this.model.width + 'x' + this.model.height).dom());
+      // dimensionsEl.innerHTML = this.model.width + 'x' + this.model.height;
+    }
+
+    // if (!this.model.image) {
+    //   this.roomImage.hide();
+    // } else {
+    //   this.roomImage.show();
+    // }
   }
 
   reset() {
@@ -79,7 +81,7 @@ class RoomDetail extends Component {
     };
     this.roomImage.reset();
     this.roomObjects.reset();
-    this.updateElements();
+    this.render();
   }
 
   adjust() {

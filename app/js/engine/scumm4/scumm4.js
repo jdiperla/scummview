@@ -1,15 +1,15 @@
 const path = require('path');
 const fs = require('fs');
 
-const Tools = require('../tools');
-const Stream = require('../stream');
-const Detector = require('../detector');
-const Graphics = require('../graphics');
-const Game = require('../game');
+const Tools = require('../../tools');
+const Stream = require('../../stream');
+const Detector = require('../../detector');
+const Graphics = require('../../graphics');
+const Scumm = require('../scumm');
 const Charset = require('./charset');
 
 
-class Scumm4 extends Game {
+class Scumm4 extends Scumm {
   constructor(detector) {
     super(detector);
     this.graphics = new Graphics();

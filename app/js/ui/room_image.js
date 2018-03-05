@@ -5,8 +5,8 @@ const Scroller = require('./scroller');
 class RoomImage extends Component {
   constructor(params={}) {
     super(params);
-    this.model.objects = [];
-    this.render();
+    this.objects = [];
+    // this.render();
   }
 
   render() {
@@ -46,8 +46,8 @@ class RoomImage extends Component {
       ctx.drawImage(this.model.image, 0, 0);
     }
 
-    for (var i = 0; i < this.model.objects.length; i++) {
-      let o = this.model.objects[i];
+    for (var i = 0; i < this.objects.length; i++) {
+      let o = this.objects[i];
       if (o.image)
         ctx.drawImage(o.image, o.x_pos, o.y_pos);
     }
@@ -100,7 +100,7 @@ class RoomImage extends Component {
   }
 
   reset() {
-    this.model.objects = [];
+    this.objects = [];
     this.tempObject = null;
     this.scroller.reset();
     this.renderImage();
@@ -116,7 +116,7 @@ class RoomImage extends Component {
   }
 
   toggleObject(ob) {
-    if (this.model.objects.find(element => element.number == ob.number)) {
+    if (this.objects.find(element => element.number == ob.number)) {
       this.removeObject(ob);
       return false;
     } else {
@@ -126,15 +126,15 @@ class RoomImage extends Component {
   }
 
   addObject(ob) {
-    if (this.model.objects.find(element => element.number == ob.number))
+    if (this.objects.find(element => element.number == ob.number))
       return;
-    this.model.objects.push(ob);
+    this.objects.push(ob);
     this.renderImage();
   }
 
   removeObject(ob) {
-    if (this.model.objects.find(element => element.number == ob.number)) {
-      this.model.objects = this.model.objects.filter(element => element.number !== ob.number);
+    if (this.objects.find(element => element.number == ob.number)) {
+      this.objects = this.objects.filter(element => element.number !== ob.number);
       this.renderImage();
     }
   }

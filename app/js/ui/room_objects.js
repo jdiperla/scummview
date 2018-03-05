@@ -5,7 +5,7 @@ const Scroller = require('./scroller');
 class RoomObjects extends Component {
   constructor(params={}) {
     super(params);
-    this.render();
+    // this.render();
   }
 
   render() {
@@ -20,7 +20,7 @@ class RoomObjects extends Component {
     container.dom().append(this.scroller.dom());
 
     this.el = container.dom();
-    this.updateElements();
+    // this.updateElements();
   }
 
   updateElements() {

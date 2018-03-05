@@ -5,12 +5,9 @@ const Scroller = require('./scroller');
 class RoomList extends Component {
   constructor(params={}) {
     super(params);
-    // this.model = model;
-    this.direction = 1;
-    this.render();
-  }
 
-  render() {
+    this.direction = 1;
+
     this.el = html.div().class('room-list-container').dom();
 
     let list = html.div().class('room-list');
@@ -23,13 +20,23 @@ class RoomList extends Component {
 
     this.el.appendChild(list.dom());
 
-    this.scroller = new Scroller({ component: this.listEl });
+    this.scroller = new Scroller();
+    this.scroller.update({ component: this.listEl });
     this.el.appendChild(this.scroller.dom());
+  }
 
-    // this.el.addEventListener('mousedown', this);
-    // this.el.addEventListener('wheel', this);
+  render() {
+    // console.log('RoomList.render', this.model);
 
-    this.updateElements();
+    while (this.itemsEl.firstChild) this.itemsEl.removeChild(this.itemsEl.firstChild);
+
+    if (this.model.items) {
+      for (var i = 0; i < this.model.items.length; i++) {
+        let item = this.model.items[i];
+        let el = this.renderListItem(item);
+        this.itemsEl.append(el);
+      }
+    }
   }
 
   renderListItem(item) {
@@ -42,7 +49,8 @@ class RoomList extends Component {
           .class('room-list-item-image')
           .append(item.image)
       )
-      // .append(html.div().class('room-list-item-title').append(html.text(item.description)))
+      .append(html.div().class('room-list-item-title').append(html.text(item.description)))
+      .append(html.div().class('room-list-item-text').append(html.text(item.width + 'x' + item.height)))
       .on('click', (event) => {
         let id = event.target.dataset.id;
         if (!this.scrolled) {
@@ -54,25 +62,8 @@ class RoomList extends Component {
     return component.dom();
   }
 
-  updateElements() {
-    while (this.itemsEl.firstChild) this.itemsEl.removeChild(this.itemsEl.firstChild);
-    if (this.model.items) {
-      for (var i = 0; i < this.model.items.length; i++) {
-        let item = this.model.items[i];
-        let el = this.renderListItem(item);
-        this.itemsEl.append(el);
-      }
-    }
-  }
-
-  update(model={}) {
-    super.update(model);
-    this.updateElements();
-  }
-
   reset() {
     this.scroller.reset();
-    // this.scroller.update();
   }
 
   adjust() {
@@ -80,9 +71,6 @@ class RoomList extends Component {
   }
 
   clear() {
-    // while (this.containerEl.firstChild) {
-    //   this.containerEl.removeChild(this.containerEl.firstChild);
-    // }
   }
 
   updateThumbnail(id, image) {

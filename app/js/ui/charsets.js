@@ -2,10 +2,10 @@ const html = require('./html');
 const Component = require('./component');
 const Pane = require('./pane');
 
-class CharacterMap extends Component {
+class Charsets extends Component {
   constructor(params={}) {
     super(params);
-    this.render();
+    // this.render();
   }
 
   render() {
@@ -19,7 +19,7 @@ class CharacterMap extends Component {
     // ;
     // this.el = component.dom();
     this.el = this.pane.dom();
-    this.updateElements();
+    // this.updateElements();
   }
 
   updateElements() {
@@ -69,4 +69,4 @@ class CharacterMap extends Component {
   }
 }
 
-module.exports = CharacterMap;
+module.exports = Charsets;

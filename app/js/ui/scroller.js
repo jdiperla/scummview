@@ -3,36 +3,33 @@ const Component = require('./component');
 
 class Scroller extends Component {
   constructor(params={}) {
-    super(params);
-    this.component = params.component;
+    super();
+    // this.component = params.component;
     this.orientation = params.orientation || 'vertical';
     this.offset = 0;
-    this.render();
-  }
 
-  render() {
     this.el = html.div().class('scroller').class(this.orientation).dom();
 
     this.grabEl = html.div().class('scroller-grab').class(this.orientation).dom();
     this.grabEl.addEventListener('mousedown', this);
+
     this.el.appendChild(this.grabEl);
 
     window.addEventListener('resize', this);
-    this.component.addEventListener('wheel', this);
-
-    this.updateElements();
+    // this.model.component.addEventListener('wheel', this);
   }
 
   updateElements() {
     let page, total, canal;
+    // console.log('Scroller.updateElements', this.model);
 
     if (this.orientation == 'horizontal') {
-      page = this.component.offsetWidth;
-      total = this.component.scrollWidth;
+      page = this.model.component.offsetWidth;
+      total = this.model.component.scrollWidth;
       canal = this.el.offsetWidth;
     } else {
-      page = this.component.offsetHeight;
-      total = this.component.scrollHeight;
+      page = this.model.component.offsetHeight;
+      total = this.model.component.scrollHeight;
       canal = this.el.offsetHeight;
     }
 
@@ -54,21 +51,20 @@ class Scroller extends Component {
     let ratio = this.offset / (canal - size);
 
     if (this.orientation == 'horizontal') {
-      this.component.scrollLeft = (total - page) * ratio;
+      this.model.component.scrollLeft = (total - page) * ratio;
       this.grabEl.style.width = size + 'px';
       this.grabEl.style.left = this.offset + 'px';
     } else {
-      this.component.scrollTop = (total - page) * ratio;
+      this.model.component.scrollTop = (total - page) * ratio;
       this.grabEl.style.height = size + 'px';
       this.grabEl.style.top = this.offset + 'px';
     }
-
   }
 
-  update(props={}) {
-    super.update(props);
-    this.updateElements();
-  }
+  // update(props={}) {
+  //   super.update(props);
+  //   this.updateElements();
+  // }
 
   reset() {
     this.offset = 0;

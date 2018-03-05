@@ -1,11 +1,11 @@
 const path = require('path');
 const fs = require('fs');
 
-const Tools = require('../tools');
-const Stream = require('../stream');
-const Detector = require('../detector');
-const Graphics = require('../graphics');
-const Game = require('../game');
+const Tools = require('../../tools');
+const Stream = require('../../stream');
+const Detector = require('../../detector');
+const Graphics = require('../../graphics');
+const Scumm = require('../scumm');
 const Charset = require('./charset');
 
 const OF_OWNER_MASK = 0x0F;
@@ -13,7 +13,7 @@ const OF_STATE_MASK = 0xF0;
 const OF_STATE_SHL = 4;
 
 
-class Scumm3 extends Game {
+class Scumm3 extends Scumm {
   constructor(detector) {
     super(detector);
     this.graphics = new Graphics();
