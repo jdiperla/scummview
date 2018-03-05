@@ -5,11 +5,12 @@ const Pane = require('./pane');
 class Charsets extends Component {
   constructor(params={}) {
     super(params);
-    // this.render();
+
+    this.pane = new Pane();
+    this.el = this.pane.dom();
   }
 
   render() {
-    this.pane = new Pane();
     // let component
     // ui.pane.add({ component: ui.roomContent, title: 'Rooms' });
     // ui.pane.add({ component: ui.characterMap, title: 'Charsets' });
@@ -18,12 +19,11 @@ class Charsets extends Component {
     //   .attribute('class', 'character-map')
     // ;
     // this.el = component.dom();
-    this.el = this.pane.dom();
     // this.updateElements();
   }
 
   updateElements() {
-    this.pane.clear();
+    this.clear();
     if (this.model.charsets) {
       for (var i = 0; i < this.model.charsets.length; i++) {
         let charset = this.model.charsets[i];

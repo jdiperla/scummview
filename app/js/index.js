@@ -87,27 +87,26 @@ function showRoomDetail(id) {
     objects: objects
   }
 
-  ui.rooms.updateDetail(model);
-  // ui.rooms.adjust();
+  ui.rooms.update({ detail: model });
 }
 
 function showPanel(id) {
-  if (id == 'game') {
-    // console.log('info');
+  if (id && id !== ui.sidebar.getActive()) {
     ui.content.clear();
-    ui.content.add(ui.game);
-    ui.sidebar.setActive('game');
+    if (id == 'game') {
+      ui.content.add(ui.game);
+      ui.game.update();
+    }
+    else if (id == 'rooms') {
+      ui.content.add(ui.rooms);
+      ui.rooms.update();
+    }
+    else if (id == 'charsets') {
+      ui.content.add(ui.charsets);
+      ui.charsets.update();
+    }
   }
-  else if (id == 'rooms') {
-    // console.log('rooms');
-    ui.content.clear();
-    ui.content.add(ui.rooms);
-  }
-  else if (id == 'charsets') {
-    // console.log('charsets');
-    ui.content.clear();
-    ui.content.add(ui.charsets);
-  }
+  ui.sidebar.setActive(id);
 }
 
 function updateRoomList(roomids) {
@@ -141,15 +140,7 @@ function updateRoomList(roomids) {
     }, Math.random() * 100 + 50);
   }
 
-  let model = {
-    list: { items: items }
-  };
-
-  // ui.rooms.update(model);
-
-  ui.rooms.updateList({ items: items });
-
-  // ui.roomList.update({ items: items });
+  ui.rooms.update({ list: { items: items } });
 }
 
 function updateElements() {
@@ -222,7 +213,6 @@ function createElements() {
   });
   ui.sidebar.on('select', (id) => {
     showPanel(id);
-    ui.sidebar.setActive(id);
   });
 
   ui.content = new Panel();

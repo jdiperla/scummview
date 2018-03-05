@@ -1,6 +1,6 @@
 const html = require('./html');
 const Component = require('./component');
-const Scroller = require('./scroller');
+const ScrollPane = require('./scroll_pane');
 
 class RoomList extends Component {
   constructor(params={}) {
@@ -9,33 +9,24 @@ class RoomList extends Component {
     this.direction = 1;
 
     this.el = html.div().class('room-list-container').dom();
+    this.itemsEl = html.div().class('room-list-items').dom();
 
-    let list = html.div().class('room-list');
-    let items = html.div().class('room-list-items');
+    this.scrollPane = new ScrollPane();
+    this.scrollPane.update({ component: this.itemsEl });
 
-    list.append(items);
-
-    this.itemsEl = items.dom();
-    this.listEl = list.dom();
-
-    this.el.appendChild(list.dom());
-
-    this.scroller = new Scroller();
-    this.scroller.update({ component: this.listEl });
-    this.el.appendChild(this.scroller.dom());
+    this.el.appendChild(this.scrollPane.dom());
   }
 
   render() {
-    // console.log('RoomList.render', this.model);
-
-    while (this.itemsEl.firstChild) this.itemsEl.removeChild(this.itemsEl.firstChild);
-
     if (this.model.items) {
+      while (this.itemsEl.firstChild) this.itemsEl.removeChild(this.itemsEl.firstChild);
+
       for (var i = 0; i < this.model.items.length; i++) {
         let item = this.model.items[i];
         let el = this.renderListItem(item);
         this.itemsEl.append(el);
       }
+
     }
   }
 
@@ -49,8 +40,11 @@ class RoomList extends Component {
           .class('room-list-item-image')
           .append(item.image)
       )
-      .append(html.div().class('room-list-item-title').append(html.text(item.description)))
-      .append(html.div().class('room-list-item-text').append(html.text(item.width + 'x' + item.height)))
+      .append(
+        html.div().class('room-list-item-text')
+          .append(html.div().class('room-list-item-title').append(html.text(item.description)))
+          .append(html.text(item.width + 'x' + item.height))
+      )
       .on('click', (event) => {
         let id = event.target.dataset.id;
         if (!this.scrolled) {
@@ -62,12 +56,15 @@ class RoomList extends Component {
     return component.dom();
   }
 
-  reset() {
-    this.scroller.reset();
+  update(model) {
+    super.update(model);
+    this.render();
+    this.scrollPane.update();
   }
 
-  adjust() {
-    this.scroller.adjust();
+
+  reset() {
+    this.scrollPane.reset();
   }
 
   clear() {

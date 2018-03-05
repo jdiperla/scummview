@@ -7,40 +7,45 @@ class Rooms extends Component {
   constructor(params={}) {
     super(params);
 
-
     this.el = html.div().class('rooms').dom();
 
-    this.list = new RoomList();
-    this.list.on('select', (id) => {
+    this.roomList = new RoomList();
+    this.roomList.on('select', (id) => {
       this.emit('select', id);
     });
-    this.el.appendChild(this.list.dom());
+    this.el.appendChild(this.roomList.dom());
 
-    this.detail = new RoomDetail();
-    this.el.appendChild(this.detail.dom());
+    this.roomDetail = new RoomDetail();
+    this.el.appendChild(this.roomDetail.dom());
   }
 
-  updateDetail(model={}) {
-    this.detail.update(model);
+  update(model={}) {
+    super.update(model);
+    this.roomList.update(this.model.list);
+    this.roomDetail.update(this.model.detail);
   }
 
-  updateList(model={}) {
-    this.list.update(model);
-  }
+  // updateDetail(model={}) {
+  //   this.roomDetail.update(model);
+  // }
+  //
+  // updateList(model={}) {
+  //   this.roomList.update(model);
+  // }
 
   updateListItem(model={}) {
-    this.list.updateThumbnail(model.id, model.image);
+    this.roomList.updateThumbnail(model.id, model.image);
   }
 
   reset() {
-    this.list.reset();
-    this.detail.reset();
+    this.roomList.reset();
+    this.roomDetail.reset();
   }
 
-  adjust() {
-    this.list.adjust();
-    this.detail.adjust();
-  }
+  // adjust() {
+  //   this.roomList.adjust();
+  //   this.roomDetail.adjust();
+  // }
 }
 
 module.exports = Rooms;

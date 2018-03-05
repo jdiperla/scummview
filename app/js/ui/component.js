@@ -4,6 +4,8 @@ const { EventEmitter } = require('events');
 class Component extends EventEmitter {
   constructor(params={}) {
     super();
+
+    this.model = {};
     this.el = document.createElement('div');
   }
 
@@ -11,11 +13,10 @@ class Component extends EventEmitter {
   }
 
   update(model={}) {
-    if (!this.model) this.model = {};
+    this.model = {};
     for (let name in model) {
       this.model[name] = model[name];
     }
-    this.render();
   }
 
   addClass(name) {
