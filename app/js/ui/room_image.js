@@ -40,12 +40,12 @@ class RoomImage extends Component {
 
   renderImage() {
     let canvas = this.el.querySelector('.room-image').firstChild;
-    canvas.width = this.model.width;
-    canvas.height = this.model.height;
+    canvas.width = this.width;
+    canvas.height = this.height;
 
     let ctx = canvas.getContext('2d');
-    if (this.model.image) {
-      ctx.drawImage(this.model.image, 0, 0);
+    if (this.image) {
+      ctx.drawImage(this.image, 0, 0);
     }
 
     for (var i = 0; i < this.objects.length; i++) {
@@ -74,37 +74,21 @@ class RoomImage extends Component {
   }
 
   update(model={}) {
-    // console.log('scrollImage.update', model);
     super.update(model);
-    this.scroller.update();
-    // this.updateElements();
 
-    // let canvas = this.el.querySelector('#graphic');
-    //
-    // canvas.width = this.model.width;
-    // canvas.height = this.model.height;
-    //
-    // let ctx = canvas.getContext('2d');
-    //
-    // if (this.model.image) {
-    //   ctx.drawImage(this.model.image, 0, 0);
-    //   // if (this.model.image.completed) {
-    //   //   ctx.drawImage(this.model.image, 0, 0);
-    //   // } else {
-    //   //   this.model.image.onload = () => ctx.drawImage(this.model.image, 0, 0);
-    //   // }
-    // } else {
-    //   // this.model.image = document.createElement('img');
-    //   // this.model.image.width = this.model.width;
-    //   // this.model.image.height = this.model.height;
-    // }
+    if (this.model.image) this.image = this.model.image;
+    if (this.model.width !== undefined) this.width = this.model.width;
+    if (this.model.height !== undefined) this.height = this.model.height;
+    this.render();
+
+    this.scroller.update();
   }
 
   reset() {
     this.objects = [];
     this.tempObject = null;
     this.scroller.reset();
-    this.renderImage();
+    this.render();
   }
 
   adjust() {
@@ -113,7 +97,7 @@ class RoomImage extends Component {
 
   showObject(ob) {
     this.tempObject = ob;
-    this.renderImage();
+    this.render();
   }
 
   toggleObject(ob) {

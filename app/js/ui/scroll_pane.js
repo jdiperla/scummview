@@ -20,7 +20,8 @@ class ScrollPane extends Component {
     this.scroller = new Scroller();
     this.scroller.on('scroll', (ratio) => {
       // this.updateOffset((this.total - this.page) * ratio);
-      this.updateOffset(this.total * ratio);
+      // this.updateOffset(this.total * ratio);
+      this.onScroller();
     });
     this.controlEl.appendChild(this.scroller.dom());
 
@@ -85,18 +86,18 @@ class ScrollPane extends Component {
 
     this.page = (this.orientation == 'horizontal' ? this.contentEl.offsetWidth : this.contentEl.offsetHeight);
     this.total = (this.orientation == 'horizontal' ? this.contentEl.scrollWidth : this.contentEl.scrollHeight);
-    // this.offset = (this.orientation == 'horizontal' ? this.contentEl.scrollLeft : this.contentEl.scrollTop);
+    this.offset = (this.orientation == 'horizontal' ? this.contentEl.scrollLeft : this.contentEl.scrollTop);
 
-    this.scroller.update({ page: this.page, total: this.total, offset: this.offset });
+    this.scroller.update({ page: this.page, total: this.total, offset: this.offset / this.total });
   }
 
   updateOffset(value) {
-    this.offset = value;
-    if (this.orientation == 'horizontal') {
-      this.contentEl.scrollLeft = this.offset;
-    } else {
-      this.contentEl.scrollTop = this.offset;
-    }
+    // this.offset = value;
+    // if (this.orientation == 'horizontal') {
+    //   this.contentEl.scrollLeft = this.offset;
+    // } else {
+    //   this.contentEl.scrollTop = this.offset;
+    // }
   }
 
   reset() {
@@ -104,8 +105,23 @@ class ScrollPane extends Component {
   }
 
   scrollBy(amt) {
+    // console.log(amt);
     this.offset += amt;
+    if (this.orientation == 'horizontal') {
+      this.contentEl.scrollLeft = this.offset;
+    } else {
+      this.contentEl.scrollTop = this.offset;
+    }
     this.update();
+  }
+
+  onScroller() {
+    this.offset = (this.scroller.offset / this.scroller.size) * this.total;
+    if (this.orientation == 'horizontal') {
+      this.contentEl.scrollLeft = this.offset;
+    } else {
+      this.contentEl.scrollTop = this.offset;
+    }
   }
 
   onWheel(event) {

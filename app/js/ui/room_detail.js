@@ -45,6 +45,7 @@ class RoomDetail extends Component {
     super.update(model);
     this.roomImage.update({ image: this.model.image, width: this.model.width, height: this.model.height });
     // this.roomObjects.update({ objects: this.model.objects });
+    this.render();
   }
 
   render() {
@@ -53,15 +54,14 @@ class RoomDetail extends Component {
     let titleEl = this.el.querySelector('#title');
     let dimensionsEl = this.el.querySelector('#dimensions');
 
-    if (titleEl) {
+    if (this.model.title !== undefined) {
       if (titleEl.firstChild) titleEl.removeChild(titleEl.firstChild);
       titleEl.appendChild(html.text(title).dom());
     }
 
-    if (dimensionsEl) {
+    if (this.model.width !== undefined && this.model.height !== undefined) {
       if (dimensionsEl.firstChild) dimensionsEl.removeChild(dimensionsEl.firstChild);
       dimensionsEl.appendChild(html.text(this.model.width + 'x' + this.model.height).dom());
-      // dimensionsEl.innerHTML = this.model.width + 'x' + this.model.height;
     }
 
     // if (!this.model.image) {

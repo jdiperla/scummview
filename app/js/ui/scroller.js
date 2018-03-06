@@ -70,9 +70,15 @@ class Scroller extends Component {
     let total = this.model.total;
 
     let grip = this.orientation == 'horizontal' ? this.el.offsetWidth : this.el.offsetHeight;
+    let size = this.orientation == 'horizontal' ? this.el.offsetWidth : this.el.offsetHeight;
+
+    if (this.model.offset !== undefined) {
+      this.offset = this.model.offset * size;
+    }
 
     if (page >= total) {
       this.offset = 0;
+      grip = 1;
     } else {
       let ratio = page / total;
       grip = grip * ratio;
@@ -86,18 +92,20 @@ class Scroller extends Component {
       this.gripEl.style.top = this.offset + 'px';
     }
 
+    this.grip = grip;
+    this.size = size;
+
   }
 
   reset() {
     this.offset = 0;
-    // this.render();
   }
 
   scrollBy(amt) {
     this.offset += amt;
 
-    let size = this.orientation == 'horizontal' ? this.el.offsetWidth : this.el.offsetHeight;
-    let grip = this.orientation == 'horizontal' ? this.gripEl.offsetWidth : this.gripEl.offsetHeight;
+    let size = this.size;//this.orientation == 'horizontal' ? this.el.offsetWidth : this.el.offsetHeight;
+    let grip = this.grip;//this.orientation == 'horizontal' ? this.gripEl.offsetWidth : this.gripEl.offsetHeight;
 
     if (this.offset + grip > size) {
       this.offset = size - grip;
@@ -111,12 +119,7 @@ class Scroller extends Component {
       this.gripEl.style.top = this.offset + 'px';
     }
 
-    // let ratio = 0;
-    // if (size - grip > 0) {
-    //   ratio = this.offset / (size - grip);
-    // }
-    // this.emit('scroll', ratio);
-    this.emit('scroll', this.offset / size);
+    this.emit('scroll');
   }
 
   startDrag() {
@@ -156,7 +159,7 @@ class Scroller extends Component {
     if (this.down) {
       if (this.drag) {
         this.scrollBy(this.orientation == 'horizontal' ? event.movementX : event.movementY);
-        this.scrolled = true;
+        // this.scrolled = true;
       } else {
         // let dx = event.clientX - this.mouseDownX;
         // let dy = event.clientY - this.mouseDownY;
@@ -177,7 +180,7 @@ class Scroller extends Component {
   }
 
   onResize(event) {
-    this.adjust();
+    // this.adjust();
   }
 
   onBlur(event) {
