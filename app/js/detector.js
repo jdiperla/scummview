@@ -12,8 +12,10 @@ const IMAGE_HASHES = {
   // '0df3a3876576a974a6c71a4cbb2e114b': { name: 'loomdemoshort', ver: '3.5.37' },
   'bfc3b12a06107ffcd091ce06a00a02b3': { id: 'loom', title: 'Loom', version: '3.5.37', image: 'loom.png' },
   '86c9eeb0638d7196f86897c7946ee276': { id: 'loomalt', title: 'Loom (alt)', version: '3.5.40', image: 'loom.png' },
-  '962516d84a568feffcd4e1baf39eea86': { id: 'indy3', title: 'Indiana Jones and the Last Crusade', version: '3.?', image: 'indy3.png' },
+  'f58c5d80a25b0374356e41f5970affc0': { id: 'indy3demo', title: 'Indiana Jones and the Last Crusade Demo', version: '3.?', image: 'indy3.jpg' },
+  '962516d84a568feffcd4e1baf39eea86': { id: 'indy3', title: 'Indiana Jones and the Last Crusade', version: '3.?', image: 'indy3.jpg' },
   // 'cc970d1111e50e9d8af83c60b3825bc7': { id: 'monkey', name: 'The Secret of Monkey Island', version: '4.0.62' }
+  'eb4090fe5333ca98a6a544b16b3c7511': { id: 'passport', title: 'Passport to Adventure', version: '4.?', image: 'monkey.png' },
   'da937fa3d5c3157b3f82321fa459ea36': { id: 'monkey', title: 'The Secret of Monkey Island', version: '4.0.62', image: 'monkey.png' }
 };
 

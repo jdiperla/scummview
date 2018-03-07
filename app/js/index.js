@@ -26,6 +26,8 @@ let rooms = [];
 let roomid = 0;
 let ui = {};
 
+let appName = 'SCUMMBuddy';
+
 // let thumbWidth = 64;
 // let thumbHeight = 40;
 
@@ -229,6 +231,10 @@ function createElements() {
   showPanel('game');
 }
 
+function setTitle(title) {
+  document.title = title ? title + ' -- ' + appName : appName;
+}
+
 function detect(rootPath) {
   let detector = new Detector(rootPath);
   // console.log(detector.version);
@@ -244,7 +250,7 @@ function detect(rootPath) {
   }
   if (game) {
     updateElements();
-    document.title = game.getTitle();
+    setTitle(game.getTitle());
   }
 }
 
@@ -298,6 +304,7 @@ function ready() {
 
   initEventListeners();
   createElements();
+  setTitle();
 }
 
 window.onload = () => {

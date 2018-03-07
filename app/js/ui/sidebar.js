@@ -9,9 +9,11 @@ class Sidebar extends Component {
 
     this.el = html.div().class('sidebar').dom();
     this.imageEl = html.div().class('sidebar-image').dom();
-    this.el.appendChild(this.imageEl);
     this.listEl = html.element('ol').class('sidebar-list').dom();
+
     this.el.appendChild(this.listEl);
+
+    this.el.appendChild(this.imageEl);
   }
 
   update(model={}) {

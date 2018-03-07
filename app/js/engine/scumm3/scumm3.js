@@ -31,6 +31,7 @@ class Scumm3 extends Scumm {
       // We hash the decoded image data from room 1 and compare that
       // against known hash values to identify the game
       let hash = Tools.checksum(pixelsRGBA);
+      console.log(hash);
 
       let info = Detector.gameInfoFromHash(hash);
       if (info) {
