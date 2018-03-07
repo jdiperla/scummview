@@ -16,53 +16,6 @@ class Scroller extends Component {
     this.el.appendChild(this.gripEl);
   }
 
-  updateElements() {
-
-    // if (this.orientation == 'horizontal') {
-    //   page = this.model.component.offsetWidth;
-    //   total = this.model.component.scrollWidth;
-    //   canal = this.el.offsetWidth;
-    // } else {
-    //   page = this.model.component.offsetHeight;
-    //   total = this.model.component.scrollHeight;
-    //   canal = this.el.offsetHeight;
-    // }
-
-    // let page = this.model.page;
-    // let total = this.model.total;
-    // let canal = this.orientation == 'horizontal' ? this.el.offsetWidth : this.el.offsetHeight;
-    // let size = 0;
-    //
-    // if (page < total) {
-    //   size = Math.round(page * (page / total));
-    // } else {
-    //   size = 0;
-    //   this.offset = 0;
-    // }
-    //
-    // if (this.offset + size > canal) {
-    //   this.offset = canal - size;
-    // } else if (this.offset < 0) {
-    //   this.offset = 0;
-    // }
-    //
-    // let ratio = this.offset / (canal - size);
-    //
-    // if (this.orientation == 'horizontal') {
-    //   // this.model.component.scrollLeft = (total - page) * ratio;
-    //   this.gripEl.style.width = size + 'px';
-    //   this.gripEl.style.left = this.offset + 'px';
-    // } else {
-    //   // this.model.component.scrollTop = (total - page) * ratio;
-    //   this.gripEl.style.height = size + 'px';
-    //   this.gripEl.style.top = this.offset + 'px';
-    // }
-  }
-
-  render() {
-    // this.updateElements();
-  }
-
   update(model={}) {
     super.update(model);
 
@@ -72,13 +25,15 @@ class Scroller extends Component {
     let grip = this.orientation == 'horizontal' ? this.el.offsetWidth : this.el.offsetHeight;
     let size = this.orientation == 'horizontal' ? this.el.offsetWidth : this.el.offsetHeight;
 
+    // console.log('Scroller.update', this.el.offsetWidth);
+
     if (this.model.offset !== undefined) {
       this.offset = this.model.offset * size;
     }
 
     if (page >= total) {
       this.offset = 0;
-      grip = 1;
+      grip = 0;
     } else {
       let ratio = page / total;
       grip = grip * ratio;
@@ -95,6 +50,7 @@ class Scroller extends Component {
     this.grip = grip;
     this.size = size;
 
+    // console.log('Scroller.update', this.orientation, this.model, this.grip, this.size);
   }
 
   reset() {

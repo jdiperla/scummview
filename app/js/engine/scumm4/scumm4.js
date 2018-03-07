@@ -32,10 +32,11 @@ class Scumm4 extends Scumm {
         console.log(hash);
         let info = Detector.gameInfoFromHash(hash);
         if (info) {
-          console.log(info.name);
-          this.name = info.name;
-          this.id = info.id;
-          this.version = info.version;
+          this.info = info;
+          // console.log(info.name);
+          // this.name = info.name;
+          // this.id = info.id;
+          // this.version = info.version;
         }
       }
     }
@@ -188,11 +189,11 @@ class Scumm4 extends Scumm {
     //   this.parseResourceFile(filenum);
     // }
 
-    if (this.fileCache[filename]) {
-      return this.fileCache[filename]
+    if (this.filecache[filename]) {
+      return this.filecache[filename]
     }
     let stream = this.getFileStream(path.join(this.rootPath, filename), 0x69);
-    this.fileCache[filename] = stream;
+    this.filecache[filename] = stream;
     return stream;
   }
 

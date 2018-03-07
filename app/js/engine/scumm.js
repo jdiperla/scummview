@@ -25,6 +25,25 @@ class Scumm {
 
   detect() { }
 
+  getTitle() {
+    if (this.info)
+      return this.info.title;
+  }
+
+  getVersion() {
+    if (this.info)
+      return this.info.version;
+  }
+
+  getImage() {
+    if (this.info && this.info.image) {
+      let image = new Image();
+      image.src = './images/' + this.info.image;
+      // console.log(image.src);
+      return image;
+    }
+  }
+
   getFileStream(filepath, enc) {
     let buffer;
     try {

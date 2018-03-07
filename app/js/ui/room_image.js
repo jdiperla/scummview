@@ -1,33 +1,32 @@
 const html = require('./html');
 const Component = require('./component');
-const Scroller = require('./scroller');
+const ScrollPane = require('./scroll_pane');
 
 class RoomImage extends Component {
   constructor(params={}) {
     super(params);
     this.objects = [];
     // this.render();
+
     this.el = html.div().class('room-image-container').dom();
 
-    let canvas = document.createElement('canvas');
-    canvas.id = 'graphic';
+    this.canvas = document.createElement('canvas');
+    this.canvas.width = 3200;
+    this.canvas.height = 200;
 
-    let component = html.div().class('room-image').append(canvas);
-    // let outer = html.div().class('room-image-border');
-    // outer.append(component);
+    let component = html.div().class('room-image').append(this.canvas);
 
-    this.el.appendChild(component.dom());
-    // container.dom().append(outer.dom());
+    this.scrollPane = new ScrollPane({ orientation: 'horizontal' });
+    this.scrollPane.update({ component: component.dom() });
 
-    // this.scroller = new Scroller({ component: component.dom(), orientation: 'horizontal' });
-    this.scroller = new Scroller({ orientation: 'horizontal' });
-    this.scroller.update({ component: component.dom() });
-    this.el.appendChild(this.scroller.dom());
+    this.el.appendChild(this.scrollPane.dom());
 
-    // this.el = container.dom();
+    // this.scroller = new Scroller({ orientation: 'horizontal' });
+    // this.scroller.update({ component: component.dom() });
+    // this.el.appendChild(this.scroller.dom());
 
-    this.el.addEventListener('mousedown', this);
-    this.el.addEventListener('wheel', this);
+    // this.el.addEventListener('mousedown', this);
+    // this.el.addEventListener('wheel', this);
   }
 
   render() {
@@ -39,60 +38,61 @@ class RoomImage extends Component {
   }
 
   renderImage() {
-    let canvas = this.el.querySelector('.room-image').firstChild;
-    canvas.width = this.width;
-    canvas.height = this.height;
+    if (this.model.image) {
+      this.image = this.model.image;
 
-    let ctx = canvas.getContext('2d');
-    if (this.image) {
-      ctx.drawImage(this.image, 0, 0);
-    }
+      this.canvas.width = this.model.width;
+      this.canvas.height = this.model.height;
 
-    for (var i = 0; i < this.objects.length; i++) {
-      let o = this.objects[i];
-      if (o.image)
-        ctx.drawImage(o.image, o.x_pos, o.y_pos);
-    }
+      let ctx = this.canvas.getContext('2d');
+      if (this.image) {
+        ctx.drawImage(this.image, 0, 0);
+      }
 
-    if (this.tempObject) {
-      let ob = this.tempObject;
-      if (ob.image) {
-        ctx.drawImage(ob.image, ob.x_pos, ob.y_pos);
-      } else {
-        ctx.save();
-        ctx.globalCompositeOperation = 'difference';
-        ctx.strokeStyle = 'white';
-        ctx.beginPath();
-        ctx.rect(ob.x_pos+0.5, ob.y_pos+0.5, ob.width-1, ob.height-1);
-        ctx.stroke();
-        ctx.restore();
+      for (var i = 0; i < this.objects.length; i++) {
+        let o = this.objects[i];
+        if (o.image)
+          ctx.drawImage(o.image, o.x_pos, o.y_pos);
+      }
+
+      if (this.tempObject) {
+        let ob = this.tempObject;
+        if (ob.image) {
+          ctx.drawImage(ob.image, ob.x_pos, ob.y_pos);
+        } else {
+          ctx.save();
+          ctx.globalCompositeOperation = 'difference';
+          ctx.strokeStyle = 'white';
+          ctx.beginPath();
+          ctx.rect(ob.x_pos+0.5, ob.y_pos+0.5, ob.width-1, ob.height-1);
+          ctx.stroke();
+          ctx.restore();
+        }
       }
     }
-  }
-
-  updateElements() {
   }
 
   update(model={}) {
     super.update(model);
 
-    if (this.model.image) this.image = this.model.image;
-    if (this.model.width !== undefined) this.width = this.model.width;
-    if (this.model.height !== undefined) this.height = this.model.height;
-    this.render();
+    // if (this.model.image) this.image = this.model.image;
+    // if (this.model.width !== undefined) this.width = this.model.width;
+    // if (this.model.height !== undefined) this.height = this.model.height;
 
-    this.scroller.update();
+    this.render();
+    // console.log('RoomImage.update');
+    this.scrollPane.update();
   }
 
   reset() {
     this.objects = [];
     this.tempObject = null;
-    this.scroller.reset();
-    this.render();
+    this.scrollPane.reset();
+    // this.render();
   }
 
   adjust() {
-    this.scroller.adjust();
+    this.scrollPane.adjust();
   }
 
   showObject(ob) {
@@ -125,77 +125,77 @@ class RoomImage extends Component {
   }
 
   setDimensions(width, height) {
-    this.el.style.height = height + 'px';
+    // this.el.style.height = height + 'px';
   }
 
   setImage(image) {
-    while (this.el.firstChild) this.el.removeChild(this.el.firstChild);
-    this.el.appendChild(image);
-    this.el.scrollLeft = 0;
-    if (image.completed) {
-      this.setDimensions(image.width, image.height);
-    } else {
-      image.onload = (event) => {
-        this.setDimensions(event.target.width, event.target.height);
-      };
-    }
+    // while (this.el.firstChild) this.el.removeChild(this.el.firstChild);
+    // this.el.appendChild(image);
+    // this.el.scrollLeft = 0;
+    // if (image.completed) {
+    //   this.setDimensions(image.width, image.height);
+    // } else {
+    //   image.onload = (event) => {
+    //     this.setDimensions(event.target.width, event.target.height);
+    //   };
+    // }
   }
 
   startDrag() {
-    window.addEventListener('blur', this);
-    window.addEventListener('mouseup', this);
-    this.drag = true;
+    // window.addEventListener('blur', this);
+    // window.addEventListener('mouseup', this);
+    // this.drag = true;
   }
 
   endDrag() {
-    if (this.drag) {
-      window.removeEventListener('blur', this);
-      window.removeEventListener('mouseup', this);
-      this.drag = false;
-    }
-    if (this.down) {
-      window.removeEventListener('mousemove', this);
-      this.down = false;
-    }
+    // if (this.drag) {
+    //   window.removeEventListener('blur', this);
+    //   window.removeEventListener('mouseup', this);
+    //   this.drag = false;
+    // }
+    // if (this.down) {
+    //   window.removeEventListener('mousemove', this);
+    //   this.down = false;
+    // }
   }
 
   onMouseDown(event) {
-    this.down = true;
-    this.mouseDownX = event.clientX;
-    this.mouseDownY = event.clientY;
-    window.addEventListener('mousemove', this);
+    // this.down = true;
+    // this.mouseDownX = event.clientX;
+    // this.mouseDownY = event.clientY;
+    // window.addEventListener('mousemove', this);
   }
 
   onMouseUp(event) {
-    this.endDrag();
+    // this.endDrag();
   }
 
   onMouseMove(event) {
-    if ((!event.buttons & 1)) {
-     this.drag = false;
-     this.down = false;
-    }
-    if (this.down) {
-      if (this.drag) {
-        this.el.scrollLeft -= event.movementX;
-        this.scrolled = true;
-      } else {
-        let dx = event.clientX - this.mouseDownX;
-        let dy = event.clientY - this.mouseDownY;
-        if (event.buttons & 1 && Math.abs(dx) > 2) {
-          this.el.scrollLeft -= dx;
-          this.startDrag();
-        }
-      }
-    }
+    // if ((!event.buttons & 1)) {
+    //  this.drag = false;
+    //  this.down = false;
+    // }
+    // if (this.down) {
+    //   if (this.drag) {
+    //     this.el.scrollLeft -= event.movementX;
+    //     this.scrolled = true;
+    //   } else {
+    //     let dx = event.clientX - this.mouseDownX;
+    //     let dy = event.clientY - this.mouseDownY;
+    //     if (event.buttons & 1 && Math.abs(dx) > 2) {
+    //       this.el.scrollLeft -= dx;
+    //       this.startDrag();
+    //     }
+    //   }
+    // }
   }
 
   onWheel(event) {
-    this.el.scrollLeft += event.deltaY;
+    // this.el.scrollLeft += event.deltaY;
   }
 
   onBlur(event) {
-    this.endDrag();
+    // this.endDrag();
   }
 
   handleEvent(event) {

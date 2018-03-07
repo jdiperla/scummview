@@ -34,11 +34,12 @@ class Scumm2 extends Scumm {
 
       let info = Detector.gameInfoFromHash(hash);
       if (info) {
-        this.title = info.title;
-        this.id = info.id;
-        this.version = info.version;
-
-        console.log(this.title);
+        this.info = info;
+        this.title = this.info.title;
+        // this.title = info.title;
+        // this.id = info.id;
+        // this.version = info.version;
+        // console.log(this.title);
       }
     }
   }

@@ -6,7 +6,12 @@ class Sidebar extends Component {
     super(params);
     this.selection = null;
     this.id = null;
+
     this.el = html.div().class('sidebar').dom();
+    this.imageEl = html.div().class('sidebar-image').dom();
+    this.el.appendChild(this.imageEl);
+    this.listEl = html.element('ol').class('sidebar-list').dom();
+    this.el.appendChild(this.listEl);
   }
 
   update(model={}) {
@@ -15,18 +20,23 @@ class Sidebar extends Component {
   }
 
   updateElements() {
-    while (this.el.firstChild) this.el.removeChild(this.el.firstChild);
-    let listEl = html.element('ol').class('sidebar-list').dom();
-    for (var i = 0; i < this.model.items.length; i++) {
-      let item = this.model.items[i];
-      let el = html.element('li').id(item.id).class('sidebar-item').dom();
-      el.appendChild(html.text(item.title).dom());
-      el.onclick = (event) => {
-        this.emit('select', event.target.id);
-      };
-      listEl.appendChild(el);
+    if (this.model.items) {
+      while (this.listEl.firstChild) this.listEl.removeChild(this.listEl.firstChild);
+      for (var i = 0; i < this.model.items.length; i++) {
+        let item = this.model.items[i];
+        let el = html.element('li').id(item.id).class('sidebar-item').dom();
+        el.appendChild(html.text(item.title).dom());
+        el.onclick = (event) => {
+          this.emit('select', event.target.id);
+        };
+        this.listEl.appendChild(el);
+      }
     }
-    this.el.appendChild(listEl);
+    if (this.model.image) {
+      // console.log(this.model.image);
+      while (this.imageEl.firstChild) this.imageEl.removeChild(this.imageEl.firstChild);
+      this.imageEl.appendChild(this.model.image);
+    }
   }
 
   getActive() {

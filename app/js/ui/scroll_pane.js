@@ -11,13 +11,13 @@ class ScrollPane extends Component {
 
     this.el = html.div().class('scroll-pane').class(this.orientation).dom();
 
-    this.contentEl = html.div().class('scroll-pane-content').dom();
+    this.contentEl = html.div().class('scroll-pane-content').class(this.orientation).dom();
     this.el.appendChild(this.contentEl);
 
-    this.controlEl = html.div().class('scroll-pane-control').dom();
+    this.controlEl = html.div().class('scroll-pane-control').class(this.orientation).dom();
     this.el.appendChild(this.controlEl);
 
-    this.scroller = new Scroller();
+    this.scroller = new Scroller({ orientation: this.orientation });
     this.scroller.on('scroll', (ratio) => {
       // this.updateOffset((this.total - this.page) * ratio);
       // this.updateOffset(this.total * ratio);
@@ -27,51 +27,6 @@ class ScrollPane extends Component {
 
     this.contentEl.addEventListener('wheel', this);
     window.addEventListener('resize', this);
-  }
-
-  updateElements() {
-    // let page, total, canal;
-    //
-    // if (this.orientation == 'horizontal') {
-    //   page = this.model.component.offsetWidth;
-    //   total = this.model.component.scrollWidth;
-    //   canal = this.el.offsetWidth;
-    // } else {
-    //   page = this.model.component.offsetHeight;
-    //   total = this.model.component.scrollHeight;
-    //   canal = this.el.offsetHeight;
-    // }
-    //
-    // let size = 0;
-    //
-    // if (page < total) {
-    //   size = Math.round(page * (page / total));
-    // } else {
-    //   size = 0;
-    //   this.offset = 0;
-    // }
-    //
-    // if (this.offset + size > canal) {
-    //   this.offset = canal - size;
-    // } else if (this.offset < 0) {
-    //   this.offset = 0;
-    // }
-    //
-    // let ratio = this.offset / (canal - size);
-    //
-    // if (this.orientation == 'horizontal') {
-    //   this.model.component.scrollLeft = (total - page) * ratio;
-    //   this.grabEl.style.width = size + 'px';
-    //   this.grabEl.style.left = this.offset + 'px';
-    // } else {
-    //   this.model.component.scrollTop = (total - page) * ratio;
-    //   this.grabEl.style.height = size + 'px';
-    //   this.grabEl.style.top = this.offset + 'px';
-    // }
-  }
-
-  render() {
-    // this.updateElements();
   }
 
   update(model={}) {
@@ -105,7 +60,6 @@ class ScrollPane extends Component {
   }
 
   scrollBy(amt) {
-    // console.log(amt);
     this.offset += amt;
     if (this.orientation == 'horizontal') {
       this.contentEl.scrollLeft = this.offset;

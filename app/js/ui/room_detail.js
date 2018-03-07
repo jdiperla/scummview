@@ -41,25 +41,16 @@ class RoomDetail extends Component {
     // this.updateElements();
   }
 
-  update(model={}) {
-    super.update(model);
-    this.roomImage.update({ image: this.model.image, width: this.model.width, height: this.model.height });
-    // this.roomObjects.update({ objects: this.model.objects });
-    this.render();
-  }
-
   render() {
-    let title = (this.model.id || '') + ' ' + (this.model.name || '');
 
-    let titleEl = this.el.querySelector('#title');
-    let dimensionsEl = this.el.querySelector('#dimensions');
-
-    if (this.model.title !== undefined) {
+    if (this.model.id !== undefined) {
+      let titleEl = this.el.querySelector('#title');
       if (titleEl.firstChild) titleEl.removeChild(titleEl.firstChild);
-      titleEl.appendChild(html.text(title).dom());
+      titleEl.appendChild(html.text((this.model.id || '') + ' ' + (this.model.name || '')).dom());
     }
 
     if (this.model.width !== undefined && this.model.height !== undefined) {
+      let dimensionsEl = this.el.querySelector('#dimensions');
       if (dimensionsEl.firstChild) dimensionsEl.removeChild(dimensionsEl.firstChild);
       dimensionsEl.appendChild(html.text(this.model.width + 'x' + this.model.height).dom());
     }
@@ -71,14 +62,16 @@ class RoomDetail extends Component {
     // }
   }
 
+  update(model={}) {
+    super.update(model);
+    this.roomImage.update({ image: this.model.image, width: this.model.width, height: this.model.height });
+    // this.roomObjects.update({ objects: this.model.objects });
+    this.render();
+  }
+
   reset() {
-    this.model = {
-      id: null,
-      name: null,
-      image: null,
-      width: null,
-      height: null
-    };
+    if (titleEl.firstChild) titleEl.removeChild(titleEl.firstChild);
+    if (dimensionsEl.firstChild) dimensionsEl.removeChild(dimensionsEl.firstChild);
     this.roomImage.reset();
     this.roomObjects.reset();
     this.render();

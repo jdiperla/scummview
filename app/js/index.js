@@ -43,8 +43,10 @@ function createThumbnailFromCanvas(image) {
     canvas.height = height;
 
     let ctx = canvas.getContext('2d');
+    ctx.save();
     ctx.imageSmoothingQuality = 'medium';
     ctx.drawImage(image, 0, 0, canvas.width, height);
+    ctx.restore();
 
   } else {
     canvas.width = thumbWidth;
@@ -178,10 +180,11 @@ function updateElements() {
   // ui.rooms.reset();
   // ui.rooms.adjust();
 
-
-  ui.game.update({ title: game.title, version: game.version });
-
-  // showPanel('game');
+  ui.game.update({ title: game.getTitle(), version: game.getVersion(), image: game.getImage() });
+  let image = game.getImage();
+  if (image) {
+    ui.sidebar.update({ image: image });
+  }
 }
 
 function createElements() {
@@ -239,7 +242,10 @@ function detect(rootPath) {
   else if (detector.version == 4) {
     game = new Scumm4(detector);
   }
-  if (game) updateElements();
+  if (game) {
+    updateElements();
+    document.title = game.getTitle();
+  }
 }
 
 function onKeyDown(event) {

@@ -5,7 +5,7 @@ class Game extends Component {
   constructor() {
     super();
 
-    this.el = html.div().dom();
+    this.el = html.div().class('game').dom();
     this.el.appendChild(html.div().id('title').dom());
     this.el.appendChild(html.div().id('version').dom());
   }
