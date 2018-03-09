@@ -22,7 +22,7 @@ class Scumm3 extends Scumm {
 
   detect() {
     this.parseIndex();
-    this.parseCharset();
+    this.parseCharsets();
 
     let room = this.getRoom(1);
     if (room) {
@@ -47,10 +47,18 @@ class Scumm3 extends Scumm {
     return this.charsets[setnum].characters[num];
   }
 
-  parseCharset() {
+  parseCharsets() {
+    let charset;
+    charset = this.parseCharset('98.lfl');
+    if (charset) this.charsets.push(charset);
+    charset = this.parseCharset('99.lfl');
+    if (charset) this.charsets.push(charset);
+  }
+
+  parseCharset(filename) {
     let buffer;
     try {
-      buffer = fs.readFileSync(path.join(this.rootPath, '99.lfl'));
+      buffer = fs.readFileSync(path.join(this.rootPath, filename));
     } catch (err) {
       console.log(err.message);
       return;
@@ -82,7 +90,7 @@ class Scumm3 extends Scumm {
     for (var i = 0; i < characters.length; i++)
       charset.addGlyph(characters[i]);
 
-    this.charsets[0] = charset;
+    return charset;
   }
 
   parseIndex() {
@@ -169,9 +177,9 @@ class Scumm3 extends Scumm {
     // }
 
     // console.log(this.numGlobalObjects, this.numRooms);
-    fs.writeFileSync(path.join(this.rootPath, '_classData.txt'), this.classData);
-    fs.writeFileSync(path.join(this.rootPath, '_objectOwnerTable.txt'), this.objectOwnerTable);
-    fs.writeFileSync(path.join(this.rootPath, '_objectStateTable.txt'), this.objectStateTable);
+    // fs.writeFileSync(path.join(this.rootPath, '_classData.txt'), this.classData);
+    // fs.writeFileSync(path.join(this.rootPath, '_objectOwnerTable.txt'), this.objectOwnerTable);
+    // fs.writeFileSync(path.join(this.rootPath, '_objectStateTable.txt'), this.objectStateTable);
   }
 
   resourceFilename(num) {

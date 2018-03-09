@@ -42,6 +42,11 @@ class Rooms extends Component {
     this.roomDetail.reset();
   }
 
+  clear() {
+    this.roomList.clear();
+    this.roomDetail.clear();
+  }
+
   // adjust() {
   //   this.roomList.adjust();
   //   this.roomDetail.adjust();

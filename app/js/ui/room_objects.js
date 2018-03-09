@@ -5,29 +5,21 @@ const ScrollPane = require('./scroll_pane');
 class RoomObjects extends Component {
   constructor(params={}) {
     super(params);
-    // this.render();
 
     this.el = html.div().class('room-objects-container').dom();
 
     this.scrollPane = new ScrollPane({ orientation: 'horizontal' });
-    // container.append(html.div().class('heading3').append(html.text('Objects')));
 
-    let objects = html.div().id('objects').class('room-objects');
-    // this.el.appendChild(objects.dom());
+    this.objectsEl = html.div().id('objects').class('room-objects').dom();
 
-    this.scrollPane.update({ component: objects.dom() });
+    this.scrollPane.update({ component: this.objectsEl });
 
-    // this.scroller = new Scroller({ orientation: 'horizontal' });
-    // this.scroller.update({ component: objects.dom() });
     this.el.appendChild(this.scrollPane.dom());
   }
 
   render() {
     if (this.model.objects && this.model.objects.length) {
-      let objectsEl = this.el.querySelector('#objects');
-
-      while (objectsEl.firstChild) objectsEl.removeChild(objectsEl.firstChild);
-
+      this.clear();
       for (var i = 0; i < this.model.objects.length; i++) {
         let ob = this.model.objects[i];
         let item = html.div()
@@ -51,7 +43,7 @@ class RoomObjects extends Component {
             this.emit('toggle', ob);
           })
         ;
-        objectsEl.appendChild(item.dom());
+        this.objectsEl.appendChild(item.dom());
       }
 
       this.show();
@@ -70,13 +62,15 @@ class RoomObjects extends Component {
   }
 
   adjust() {
-    // this.scroller.adjust();
     this.scrollPane.adjust();
   }
 
   reset() {
-    // this.scroller.reset();
     this.scrollPane.reset();
+  }
+
+  clear() {
+    while (this.objectsEl.firstChild) this.objectsEl.removeChild(this.objectsEl.firstChild);
   }
 }
 

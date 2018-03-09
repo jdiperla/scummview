@@ -149,6 +149,9 @@ function updateRoomList(roomids) {
 }
 
 function updateElements() {
+
+  ui.rooms.clear();
+
   let roomids = game.getRoomList();
 
   updateRoomList(roomids);

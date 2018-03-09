@@ -6,12 +6,11 @@ class RoomImage extends Component {
   constructor(params={}) {
     super(params);
     this.objects = [];
-    // this.render();
 
     this.el = html.div().class('room-image-container').dom();
 
     this.canvas = document.createElement('canvas');
-    this.canvas.width = 3200;
+    this.canvas.width = 320;
     this.canvas.height = 200;
 
     let component = html.div().class('room-image').append(this.canvas);
@@ -20,21 +19,10 @@ class RoomImage extends Component {
     this.scrollPane.update({ component: component.dom() });
 
     this.el.appendChild(this.scrollPane.dom());
-
-    // this.scroller = new Scroller({ orientation: 'horizontal' });
-    // this.scroller.update({ component: component.dom() });
-    // this.el.appendChild(this.scroller.dom());
-
-    // this.el.addEventListener('mousedown', this);
-    // this.el.addEventListener('wheel', this);
   }
 
   render() {
-    // canvas.width = this.model.width;
-    // canvas.height = this.model.height;
-
     this.renderImage();
-    // this.updateElements();
   }
 
   renderImage() {
@@ -93,6 +81,13 @@ class RoomImage extends Component {
     this.tempObject = null;
     this.scrollPane.reset();
     // this.render();
+  }
+
+  clear() {
+    this.canvas.width = 320;
+    this.canvas.height = 200;
+    let ctx = this.canvas.getContext('2d');
+    ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
   }
 
   adjust() {
