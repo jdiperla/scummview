@@ -79,6 +79,10 @@ class RoomImage extends Component {
     // if (this.model.width !== undefined) this.width = this.model.width;
     // if (this.model.height !== undefined) this.height = this.model.height;
 
+    if (this.model.image) {
+      this.reset();
+    }
+
     this.render();
     // console.log('RoomImage.update');
     this.scrollPane.update();

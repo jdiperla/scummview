@@ -6,8 +6,9 @@ class Charsets extends Component {
   constructor(params={}) {
     super(params);
 
-    this.pane = new Pane();
-    this.el = this.pane.dom();
+    // this.pane = new Pane();
+    // this.el = this.pane.dom();
+    this.el = html.div().class('charsets-container').dom();
   }
 
   render() {
@@ -23,27 +24,30 @@ class Charsets extends Component {
   }
 
   updateElements() {
-    this.clear();
     if (this.model.charsets) {
+      this.clear();
       for (var i = 0; i < this.model.charsets.length; i++) {
         let charset = this.model.charsets[i];
+
         let component = html.div().class('character-map');
+
         for (var j = 0; j < charset.characters.length; j++) {
           let ch = charset.characters[j]
           let item = html.div().class('character-map-item');
           if (ch.image) {
             item.append(ch.image);
           } else {
-            // this.el.appendChild(html.div().attribute('class', 'character-map-item').append(html.div().attribute('class', 'null-character')).dom());
             item.append(html.div().class('null-character'));
           }
           component.append(item);
         }
-        let container = html.div().class('character-map-container');
-        container.append(component);
-        this.pane.add({ component: container, title: 'CH' + i });
+
+        // let container = html.div().class('character-map-container');
+        // container.append(component);
+
+        this.el.appendChild(component.dom());
+        // this.pane.add({ component: container, title: 'CH' + i });
       }
-      this.pane.show(0);
     }
 
     // while (this.el.firstChild) this.el.removeChild(this.el.firstChild);
@@ -65,7 +69,7 @@ class Charsets extends Component {
   }
 
   clear() {
-    this.pane.clear();
+    while (this.el.firstChild) this.el.removeChild(this.el.firstChild);
   }
 }
 

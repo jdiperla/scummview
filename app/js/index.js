@@ -91,6 +91,7 @@ function showRoomDetail(id) {
     objects: objects
   }
 
+  // ui.rooms.reset();
   ui.rooms.update({ detail: model });
 }
 
@@ -128,7 +129,7 @@ function updateRoomList(roomids) {
 
     let item = {
       id: room.id,
-      description: room.id,
+      name: room.name,
       width: room.width,
       height: room.height,
       image: thumbnail
@@ -150,35 +151,33 @@ function updateRoomList(roomids) {
 function updateElements() {
   let roomids = game.getRoomList();
 
-  // console.log(roomids);
-
   updateRoomList(roomids);
 
   // let dropEl = document.querySelector('#drop');
   // if (dropEl)
   //   dropEl.style.visibility = 'hidden';
-  //
-  // ui.charsets.clear();
-  //
-  // let model = { charsets: [] };
-  // for (var i = 0; i < game.charsets.length; i++) {
-  //   let charset = game.charsets[i];
-  //   // console.log(charset);
-  //   model.charsets[i] = { characters: [] };
-  //   for (var j = 0; j < charset.characters.length; j++) {
-  //     let ch = charset.characters[j];
-  //     if (ch) {
-  //       let bitmap = charset.getBitmap(j);
-  //       let image = Tools.createCanvasFromBuffer(bitmap, ch.width, ch.height);
-  //       model.charsets[i].characters.push({ image: image, width: ch.width, height: ch.height });
-  //     } else {
-  //       model.charsets[i].characters.push({ width: 8, height: 8 });
-  //     }
-  //   }
-  // }
-  //
-  // ui.charsets.update(model);
-  //
+
+  ui.charsets.clear();
+
+  let model = { charsets: [] };
+  for (var i = 0; i < game.charsets.length; i++) {
+    let charset = game.charsets[i];
+    // console.log(charset);
+    model.charsets[i] = { characters: [] };
+    for (var j = 0; j < charset.characters.length; j++) {
+      let ch = charset.characters[j];
+      if (ch) {
+        let bitmap = charset.getBitmap(j);
+        let image = Tools.createCanvasFromBuffer(bitmap, ch.width, ch.height);
+        model.charsets[i].characters.push({ image: image, width: ch.width, height: ch.height });
+      } else {
+        model.charsets[i].characters.push({ width: 8, height: 8 });
+      }
+    }
+  }
+
+  ui.charsets.update(model);
+
   // ui.rooms.reset();
   // ui.rooms.adjust();
 
@@ -200,12 +199,6 @@ function createElements() {
   });
 
   ui.charsets = new Charsets();
-
-  // ui.pane = new Pane();
-  // ui.pane.add({ component: ui.rooms, title: 'Rooms' });
-  // ui.pane.add({ component: ui.char, title: 'Charsets' });
-  // ui.pane.show(0);
-  // ui.main.appendChild(ui.pane.dom());
 
   ui.main = new Pane();
 
@@ -290,6 +283,14 @@ function onContextMenu() {
   // console.log('menu');
 }
 
+let scrollTarget;
+
+function onWheel(event) {
+}
+
+function onMouseMove(event) {
+}
+
 function initEventListeners() {
   window.addEventListener('keydown', onKeyDown);
   window.addEventListener('drop', onDrop);
@@ -297,6 +298,8 @@ function initEventListeners() {
   window.addEventListener('dragenter', onDragEnter);
   window.addEventListener('dragend', onDragEnd);
   window.addEventListener('contextmenu', onContextMenu);
+  window.addEventListener('wheel', onWheel);
+  window.addEventListener('mousemove', onMouseMove);
 }
 
 function ready() {

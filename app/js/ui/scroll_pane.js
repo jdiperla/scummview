@@ -19,13 +19,12 @@ class ScrollPane extends Component {
 
     this.scroller = new Scroller({ orientation: this.orientation });
     this.scroller.on('scroll', (ratio) => {
-      // this.updateOffset((this.total - this.page) * ratio);
-      // this.updateOffset(this.total * ratio);
       this.onScroller();
     });
     this.controlEl.appendChild(this.scroller.dom());
 
     this.contentEl.addEventListener('wheel', this);
+    // window.addEventListener('wheel', this);
     window.addEventListener('resize', this);
   }
 
@@ -39,8 +38,11 @@ class ScrollPane extends Component {
       }
     }
 
+    let rect = this.contentEl.getBoundingClientRect();
+
     this.page = (this.orientation == 'horizontal' ? this.contentEl.offsetWidth : this.contentEl.offsetHeight);
     this.total = (this.orientation == 'horizontal' ? this.contentEl.scrollWidth : this.contentEl.scrollHeight);
+    // this.total = (this.orientation == 'horizontal' ? rect.width : rect.height);
     this.offset = (this.orientation == 'horizontal' ? this.contentEl.scrollLeft : this.contentEl.scrollTop);
 
     this.scroller.update({ page: this.page, total: this.total, offset: this.offset / this.total });
@@ -57,6 +59,10 @@ class ScrollPane extends Component {
 
   reset() {
     this.offset = 0;
+    if (this.orientation == 'horizontal')
+      this.contentEl.scrollLeft = 0;
+    else
+      this.contentEl.scrollTop = 0;
   }
 
   scrollBy(amt) {
@@ -79,8 +85,16 @@ class ScrollPane extends Component {
   }
 
   onWheel(event) {
+    // let rect = this.el.getBoundingClientRect();
+    // let x = event.pageX;
+    // let y = event.pageY;
+    // if (x > rect.left && x < rect.right && y > rect.top && y < rect.bottom) {
+    //   let amt = this.orientation == 'horizontal' ? event.deltaX : event.deltaY;
+    //   this.scrollBy(amt);
+    // }
     let amt = this.orientation == 'horizontal' ? event.deltaX : event.deltaY;
     this.scrollBy(amt);
+    // console.log(amt);
   }
 
   onResize(event) {

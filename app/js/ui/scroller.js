@@ -25,8 +25,6 @@ class Scroller extends Component {
     let grip = this.orientation == 'horizontal' ? this.el.offsetWidth : this.el.offsetHeight;
     let size = this.orientation == 'horizontal' ? this.el.offsetWidth : this.el.offsetHeight;
 
-    // console.log('Scroller.update', this.el.offsetWidth);
-
     if (this.model.offset !== undefined) {
       this.offset = this.model.offset * size;
     }
@@ -49,8 +47,6 @@ class Scroller extends Component {
 
     this.grip = grip;
     this.size = size;
-
-    // console.log('Scroller.update', this.orientation, this.model, this.grip, this.size);
   }
 
   reset() {
@@ -60,8 +56,8 @@ class Scroller extends Component {
   scrollBy(amt) {
     this.offset += amt;
 
-    let size = this.size;//this.orientation == 'horizontal' ? this.el.offsetWidth : this.el.offsetHeight;
-    let grip = this.grip;//this.orientation == 'horizontal' ? this.gripEl.offsetWidth : this.gripEl.offsetHeight;
+    let size = this.size;
+    let grip = this.grip;
 
     if (this.offset + grip > size) {
       this.offset = size - grip;

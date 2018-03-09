@@ -42,7 +42,7 @@ class RoomList extends Component {
       )
       .append(
         html.div().class('room-list-item-text')
-          .append(html.div().class('room-list-item-title').append(html.text(item.description)))
+          .append(html.div().class('room-list-item-title').append(html.text(item.name || item.id)))
           .append(html.text(item.width + 'x' + item.height))
       )
       .on('click', (event) => {

@@ -11,21 +11,19 @@ class RoomDetail extends Component {
 
     this.el = html.div().class('room-detail-container').dom();
 
-    let component = html.div()
-      .attribute('class', 'room-detail')
-    ;
+    let componentEl = html.div().class('room-detail').dom();
 
-    this.el.appendChild(component.dom());
+    this.el.appendChild(componentEl);
 
-    component.append(html.div().id('title').class('room-title'));
-    component.append(html.div().id('dimensions'));
+    componentEl.appendChild(html.div().id('title').class('room-title').dom());
+    componentEl.appendChild(html.div().id('dimensions').dom());
 
-    component.append(html.div().style('height', '1rem'));
+    componentEl.appendChild(html.div().style('height', '1rem').dom());
 
     this.roomImage = new RoomImage();
-    component.append(this.roomImage.dom());
+    componentEl.appendChild(this.roomImage.dom());
 
-    component.append(html.div().style('height', '1rem'));
+    componentEl.appendChild(html.div().style('height', '1rem').dom());
 
     this.roomObjects = new RoomObjects();
     this.roomObjects.on('enter', (ob) => {
@@ -37,8 +35,8 @@ class RoomDetail extends Component {
     this.roomObjects.on('toggle', (ob) => {
       this.toggleObject(ob);
     });
-    component.append(this.roomObjects.dom());
-    // this.updateElements();
+
+    componentEl.appendChild(this.roomObjects.dom());
   }
 
   render() {
@@ -64,13 +62,20 @@ class RoomDetail extends Component {
 
   update(model={}) {
     super.update(model);
+
+    // if (this.model.image) {
+    //   this.reset();
+    // }
+
     this.roomImage.update({ image: this.model.image, width: this.model.width, height: this.model.height });
-    // this.roomObjects.update({ objects: this.model.objects });
+    this.roomObjects.update({ objects: this.model.objects });
     this.render();
   }
 
   reset() {
+    let titleEl = this.el.querySelector('#title');
     if (titleEl.firstChild) titleEl.removeChild(titleEl.firstChild);
+    let dimensionsEl = this.el.querySelector('#dimensions');
     if (dimensionsEl.firstChild) dimensionsEl.removeChild(dimensionsEl.firstChild);
     this.roomImage.reset();
     this.roomObjects.reset();
