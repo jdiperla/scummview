@@ -358,7 +358,7 @@ class Scumm3 extends Scumm {
       let files = fs.readdirSync(this.rootPath);
       files = files.filter(element => {
         let name = element.toLowerCase();
-        return (path.extname(name) == '.lfl' && name !== '00.lfl' && name !== '99.lfl');
+        return (path.extname(name) == '.lfl' && !['00.lfl', '98.lfl', '99.lfl'].includes(name));
       });
 
       let numbers = [];
